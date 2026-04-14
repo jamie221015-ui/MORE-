@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="theme-color" content="#C8AD8B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>售後服務追蹤＋奶茶小遊戲 | 網頁版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #F7EFE1;
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+            padding: 20px 16px 40px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* 卡片樣式 - 奶茶色系 */
+        .card {
+            background: #FFFBF5;
+            border-radius: 32px;
+            box-shadow: 0 8px 20px rgba(139, 89, 57, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #EDDFC7;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.25rem;
+            color: #5E3A2C;
+        }
+
+        h1 span {
+            background: #F1E5D2;
+            padding: 6px 10px;
+            border-radius: 60px;
+            font-size: 1.5rem;
+        }
+
+        .sub {
+            color: #9B7B5C;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            border-left: 3px solid #D9B48B;
+            padding-left: 12px;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 4px solid #D9B48B;
+            padding-left: 12px;
+            color: #5E3A2C;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #A27B5C;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 20px;
+            border: 1.5px solid #EADBC5;
+            background: #FFFFFF;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            outline: none;
+            font-family: inherit;
+            color: #4B3621;
+        }
+
+        input:focus, select:focus {
+            border-color: #C8AD8B;
+            box-shadow: 0 0 0 3px rgba(200, 173, 139, 0.25);
+        }
+
+        button {
+            background: #D9B48B;
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(0.97);
+            background: #C8A27A;
+        }
+
+        .btn-outline {
+            background: #F4EDE2;
+            color: #8B5A3C;
+            border: 1px solid #E2D1BA;
+        }
+
+        .btn-outline:active {
+            background: #E8DCCB;
+        }
+
+        .search-bar {
+            background: #FFF8F0;
+            border-radius: 60px;
+            padding: 4px 16px 4px 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border: 1px solid #EDDFC7;
+        }
+        .search-bar input {
+            border: none;
+            background: transparent;
+            padding: 10px 0;
+        }
+        .search-bar input:focus {
+            box-shadow: none;
+        }
+        .search-bar button {
+            width: auto;
+            padding: 8px 16px;
+            border-radius: 40px;
+        }
+
+        /* 紀錄卡片 */
+        .record-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .record-item {
+            background: #FFFCF8;
+            border-radius: 24px;
+            padding: 14px 16px;
+            border: 1px solid #EFE2D2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            transition: 0.1s;
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .customer-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #5E3A2C;
+        }
+        .service-badge {
+            background: #F1E5D6;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #9B6E48;
+        }
+        .record-details {
+            font-size: 0.85rem;
+            color: #7C5D42;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .record-details span {
+            background: #FBF5EA;
+            padding: 4px 10px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .delete-btn {
+            background: #F5E0D0;
+            color: #AD6B3C;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            width: auto;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .delete-btn:active {
+            background: #EAD0BC;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 2rem;
+            color: #BC9A7A;
+        }
+        .stats {
+            background: #FCF6EC;
+            border-radius: 24px;
+            padding: 12px 16px;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #7C5D42;
+            border: 1px solid #EDDFC7;
+        }
+        .install-guide {
+            background: #FCF3E6;
+            border-radius: 24px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 6px solid #D9B48B;
+            font-size: 0.85rem;
+            color: #6E4F34;
+        }
+
+        /* 小遊戲專屬樣式 */
+        .game-area {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .bubble {
+            font-size: 5rem;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.1s ease;
+            user-select: none;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.1));
+        }
+        .bubble:active {
+            transform: scale(0.9);
+        }
+        .game-score {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #D9B48B;
+            background: #FCF6EC;
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 60px;
+            margin: 10px 0;
+        }
+        .game-highscore {
+            font-size: 0.9rem;
+            color: #9B7B5C;
+            margin-bottom: 12px;
+        }
+        .click-feedback {
+            position: fixed;
+            pointer-events: none;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #D9B48B;
+            text-shadow: 0 0 5px white;
+            z-index: 1000;
+            animation: floatUp 0.6s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0px) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.2); }
+        }
+        hr {
+            margin: 12px 0;
+            border-color: #EADBC5;
+        }
+        @media (max-width: 550px) {
+            .card { padding: 1.2rem; }
+            .flex-row { flex-direction: column; gap: 0.7rem; }
+            .record-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .bubble { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 安裝指引 -->
+    <div class="install-guide">
+        📲 <strong>安裝到手機桌面</strong> ｜ Safari/Chrome 點分享圖示 → 加入主畫面，即可像 App 使用。<br>
+        ✅ 所有資料自動儲存在本機，關閉也不會遺失。🎮 下方還有奶茶小遊戲！
+    </div>
+
+    <!-- 主要表單卡片：新增售後服務紀錄 -->
+    <div class="card">
+        <h1><span>🛠️</span> 售後服務追蹤</h1>
+        <div class="sub">記錄客戶購買與服務歷程，提升回購率</div>
+
+        <div class="flex-row">
+            <div class="form-group">
+                <label>📅 服務日期</label>
+                <input type="date" id="serviceDate" value="">
+            </div>
+            <div class="form-group">
+                <label>📅 原購買日期</label>
+                <input type="date" id="purchaseDate" value="">
+            </div>
+        </div>
+
+        <div class="flex-row">
+            <div class="form-group">
+                <label>🧑‍🦰 客戶姓名</label>
+                <input type="text" id="customerName" placeholder="例：陳美華" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>📞 聯絡電話 (選填)</label>
+                <input type="tel" id="customerPhone" placeholder="手機 / 市話" autocomplete="off">
+            </div>
+        </div>
+
+        <div class="flex-row">
+            <div class="form-group">
+                <label>🏷️ 購買產品</label>
+                <input type="text" id="productName" placeholder="例：纖纖飲X / 爆纖錠" list="productList">
+                <datalist id="productList">
+                    <option>纖纖飲X</option><option>爆纖錠</option><option>纖飄錠</option>
+                    <option>纖酵宿</option><option>紫纖飲</option><option>肽纖飲</option>
+                    <option>厚奶茶</option><option>洗髮露</option><option>養髮液</option>
+             
