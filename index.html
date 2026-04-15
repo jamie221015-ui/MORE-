@@ -481,6 +481,7 @@ function App() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+  const [importMsg, setImportMsg] = useState("");
 
   useEffect(() => {
     try { localStorage.setItem(LS_KEY, JSON.stringify(records)); } catch {}
@@ -493,6 +494,43 @@ function App() {
   const deleteRecord = useCallback((id) => {
     setRecords(prev => prev.filter(r => r.id !== id));
   }, []);
+
+  // 匯出備份
+  const exportData = () => {
+    const data = JSON.stringify(records, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toLocaleDateString("zh-TW").replace(/\//g, "-");
+    a.href = url;
+    a.download = `皇家MORE備份_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // 匯入備份
+  const importData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!Array.isArray(data)) throw new Error();
+        setRecords(prev => {
+          const existingIds = new Set(prev.map(r => r.id));
+          const newRecords = data.filter(r => !existingIds.has(r.id));
+          return [...newRecords, ...prev].sort((a, b) => b.id - a.id);
+        });
+        setImportMsg(`✅ 成功匯入 ${data.length} 筆紀錄！`);
+      } catch {
+        setImportMsg("❌ 檔案格式錯誤，請選擇正確的備份檔案");
+      }
+      setTimeout(() => setImportMsg(""), 3000);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5ede0", fontFamily: "-apple-system, sans-serif" }}>
@@ -510,10 +548,37 @@ function App() {
         ))}
       </div>
 
+      {importMsg && (
+        <div style={{ background: importMsg.startsWith("✅") ? "#f0faf4" : "#fff5f4", padding: "10px 16px", textAlign: "center", fontSize: 14, color: importMsg.startsWith("✅") ? "#1a6b3a" : "#c0392b", borderBottom: "1px solid #e8dcc8" }}>
+          {importMsg}
+        </div>
+      )}
+
       <div style={{ padding: "16px 16px 80px" }}>
         {tab === 0 && <SalesTab onSave={addRecord} />}
         {tab === 1 && <StockTab onSave={addRecord} />}
-        {tab === 2 && <HistoryTab records={records} onDelete={deleteRecord} />}
+        {tab === 2 && (
+          <>
+            {/* 備份區 */}
+            <div style={{ background: "#fff", borderRadius: 16, padding: 16, marginBottom: 14, boxShadow: "0 1px 10px rgba(139,90,43,0.09)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "#a07850", textTransform: "uppercase", marginBottom: 12 }}>資料備份</div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={exportData} disabled={records.length === 0}
+                  style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: "none", background: records.length === 0 ? "#e8dcc8" : "linear-gradient(135deg,#3d2b1f,#6b4226)", color: records.length === 0 ? "#b09070" : "#fff", cursor: records.length === 0 ? "default" : "pointer", fontSize: 14, fontWeight: 600 }}>
+                  📤 匯出備份
+                </button>
+                <label style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: "1.5px solid #e8dcc8", background: "#fdf8f2", color: "#6b4226", cursor: "pointer", fontSize: 14, fontWeight: 600, textAlign: "center", display: "block" }}>
+                  📥 匯入備份
+                  <input type="file" accept=".json" onChange={importData} style={{ display: "none" }} />
+                </label>
+              </div>
+              <div style={{ fontSize: 11, color: "#b09070", marginTop: 8, textAlign: "center" }}>
+                建議換手機前先匯出備份，換機後再匯入
+              </div>
+            </div>
+            <HistoryTab records={records} onDelete={deleteRecord} />
+          </>
+        )}
       </div>
     </div>
   );
