@@ -86,6 +86,57 @@
     animation: petShake 0.5s ease-in-out;
     transform-origin: bottom center;
   }
+  @keyframes petLie {
+    0%   { transform: rotate(0deg) translateY(0px); }
+    100% { transform: rotate(90deg) translateY(10px); }
+  }
+  @keyframes petTickle {
+    0%   { transform: rotate(80deg) scale(0.7) translateY(-30px); }
+    25%  { transform: rotate(70deg) scale(0.72) translateY(-28px); }
+    50%  { transform: rotate(85deg) scale(0.68) translateY(-32px); }
+    75%  { transform: rotate(73deg) scale(0.71) translateY(-29px); }
+    100% { transform: rotate(80deg) scale(0.7) translateY(-30px); }
+  }
+  @keyframes petTickleHappy {
+    0%   { transform: rotate(0deg) scale(1); }
+    20%  { transform: rotate(-8deg) scale(1.08); }
+    40%  { transform: rotate(8deg) scale(1.06); }
+    60%  { transform: rotate(-6deg) scale(1.04); }
+    80%  { transform: rotate(6deg) scale(1.02); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+  .pet-lie {
+    animation: petLie 0.5s ease-out forwards;
+    transform-origin: bottom center;
+  }
+  .pet-lying {
+    transform: rotate(80deg) scale(0.7) translateY(-30px);
+    transform-origin: center center;
+  }
+  .pet-tickle-lying {
+    animation: petTickle 0.6s ease-in-out;
+    transform-origin: bottom center;
+  }
+  .pet-tickle-happy {
+    animation: petTickleHappy 0.5s ease-in-out;
+    transform-origin: bottom center;
+  }
+  .pet-step {
+    animation: petStep 0.8s ease-in-out;
+    transform-origin: bottom center;
+  }
+  .pet-spin {
+    animation: petSpin 0.6s ease-in-out;
+    transform-origin: bottom center;
+  }
+  .pet-nod {
+    animation: petNod 0.6s ease-in-out;
+    transform-origin: bottom center;
+  }
+  .pet-shake {
+    animation: petShake 0.5s ease-in-out;
+    transform-origin: bottom center;
+  }
   </style>
 
   <link rel="apple-touch-icon" href="data:image/png;base64,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">
@@ -139,7 +190,7 @@ const PRODUCTS = [
 const PRICE_LABELS = ["原價", "優惠價", "VIP價"];
 const PLATFORMS = ["蝦皮", "面交", "賣貨便", "LINE", "Instagram", "其他"];
 const BUY_COUNTS = ["首次購買", "回購", "回購3次以上"];
-const TAGS = ["VIP社群", "健康", "加盟", "纖體", "纖體班", "美肌", "飲控百科"];
+const TAGS = ["纖體", "美肌", "大健康", "纖體班", "飲控百科", "加盟", "試用包", "未取貨", "VIP社群"];
 const TABS = ["進貨", "銷售", "顧客", "分店", "紀錄", "寵物", "備份"];
 const ntd = (n) => `NT$${Number(n).toLocaleString()}`;
 const nowId = () => Date.now().toString();
@@ -151,11 +202,23 @@ const LS_PET = "royal_more_pet";
 const LS_BRANCH = "royal_more_branch";
 
 
-const PetSVG = ({ type, mood }) => {
+const PetSVG = ({ type, mood, onTickle }) => {
   const src = PET_IMAGES[type];
   const [bouncing, setBouncing] = React.useState(false);
   const [idleAnim, setIdleAnim] = React.useState("");
+  const [tickling, setTickling] = React.useState(false);
+  const [lying, setLying] = React.useState(false);
   const prevMood = React.useRef(mood);
+
+  // 難過時躺倒
+  React.useEffect(() => {
+    if (mood === "sad") {
+      setLying(true);
+      setIdleAnim("");
+    } else {
+      setLying(false);
+    }
+  }, [mood]);
 
   // 開心彈跳
   React.useEffect(() => {
@@ -167,49 +230,61 @@ const PetSVG = ({ type, mood }) => {
     prevMood.current = mood;
   }, [mood]);
 
-  // 隨機自發動作（每5~12秒隨機觸發一次）
+  // 隨機自發動作
   React.useEffect(() => {
     if (mood === "sad") return;
     const randomAnims = ["pet-step", "pet-spin", "pet-nod", "pet-shake", "pet-bounce"];
     const durations = { "pet-step": 850, "pet-spin": 650, "pet-nod": 650, "pet-shake": 550, "pet-bounce": 750 };
-
     const schedule = () => {
-      const delay = 5000 + Math.random() * 7000; // 5~12秒
+      const delay = 5000 + Math.random() * 7000;
       return setTimeout(() => {
         if (bouncing) { schedule(); return; }
         const anim = randomAnims[Math.floor(Math.random() * randomAnims.length)];
         setIdleAnim(anim);
-        setTimeout(() => {
-          setIdleAnim("");
-          timerRef.current = schedule();
-        }, durations[anim] || 700);
+        setTimeout(() => { setIdleAnim(""); timerRef.current = schedule(); }, durations[anim] || 700);
       }, delay);
     };
-
     const timerRef = { current: schedule() };
     return () => clearTimeout(timerRef.current);
   }, [mood]);
 
+  // 點擊搔癢
+  const handleClick = () => {
+    if (tickling) return;
+    setTickling(true);
+    if (onTickle) onTickle();
+    setTimeout(() => setTickling(false), 650);
+  };
+
   const filters = {
-    sad: "grayscale(40%) brightness(0.85)",
+    sad: "grayscale(50%) brightness(0.8)",
     happy: "brightness(1.08) saturate(1.2)",
     idle: "none",
   };
 
-  const animClass = bouncing ? "pet-bounce" : idleAnim ? idleAnim : mood !== "sad" ? "pet-wiggle" : "";
+  const animClass = tickling
+    ? (mood === "sad" ? "pet-tickle-lying" : "pet-tickle-happy")
+    : bouncing ? "pet-bounce"
+    : lying ? "pet-lying"
+    : idleAnim ? idleAnim
+    : mood !== "sad" ? "pet-wiggle" : "";
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: "100%", height: "100%", cursor: mood !== "sad" ? "pointer" : "default" }}
+      onClick={handleClick}>
       <img src={src} alt={type} className={animClass} style={{
         width: "100%", height: "100%", objectFit: "contain",
         filter: filters[mood] || "none",
-        transition: "filter 0.3s"
+        transition: lying && !tickling ? "transform 0.5s ease-out" : "filter 0.3s"
       }}/>
-      {mood === "sad" && (
-        <div style={{ position: "absolute", top: 0, right: 0, fontSize: 22 }}>😢</div>
+      {mood === "sad" && !tickling && (
+        <div style={{ position: "absolute", top: "10%", right: "5%", fontSize: 22 }}>😴</div>
       )}
-      {mood === "happy" && (
+      {mood === "happy" && !tickling && (
         <div style={{ position: "absolute", top: 0, right: 0, fontSize: 22 }}>✨</div>
+      )}
+      {tickling && (
+        <div style={{ position: "absolute", top: 0, right: 0, fontSize: 22 }}>🤣</div>
       )}
     </div>
   );
@@ -401,7 +476,7 @@ function PetTab({ coins }) {
         {pet.clean > 0 && pet.clean < 20 && <div style={{ fontSize: 13, color: "#c0392b", marginBottom: 6 }}>💧 好臭！快幫我洗澡！</div>}
         {pet.clean >= 20 && pet.clean < 40 && <div style={{ fontSize: 13, color: "#A59482", marginBottom: 6 }}>🛁 有點髒了…需要洗澡</div>}
         {/* 開心提醒 */}
-        {pet.hungry >= 70 && pet.mood >= 70 && pet.clean >= 70 && <div style={{ fontSize: 13, color: "#1a6b3a", marginBottom: 8 }}>😸 我很開心！謝謝你的照顧～</div>}
+        {pet.hungry >= 70 && pet.mood >= 70 && pet.clean >= 70 && <div style={{ fontSize: 13, color: "#7a5c3a", marginBottom: 8 }}>😸 我很開心！謝謝你的照顧～</div>}
         {pet.hungry === 0 && pet.mood === 0 && pet.clean === 0 && (
           <div style={{ background: "#fff0ee", borderRadius: 10, padding: "10px 14px", marginBottom: 8, textAlign: "center" }}>
             <div style={{ fontSize: 14, color: "#c0392b", fontWeight: 700 }}>😭 又餓又髒又難過！</div>
@@ -555,7 +630,7 @@ function SaveModal({ isSale, profit, total, customers, onSave, onCancel }) {
               <div style={{ flex: 1 }}><TextInput value={customer} onChange={setCustomer} placeholder="手動輸入" /></div>
               <button onClick={() => setShowCustPicker(true)} style={{ padding: "9px 14px", borderRadius: 8, border: "1.5px solid #DBC8B6", background: "#faf6f2", color: "#C6A992", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>🐻</button>
             </div>
-            {selectedCust && <div style={{ background: "#f0faf4", borderRadius: 8, padding: "7px 12px", marginBottom: 14, fontSize: 13, color: "#1a6b3a" }}>✓ 已連結：{selectedCust.name}</div>}
+            {selectedCust && <div style={{ background: "#f0faf4", borderRadius: 8, padding: "7px 12px", marginBottom: 14, fontSize: 13, color: "#7a5c3a" }}>✓ 已連結：{selectedCust.name}</div>}
           </>
         )}
         {!isSale && (
@@ -576,19 +651,51 @@ function SuccessFlash() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 300 }}>
       <div style={{ fontSize: 60 }}>✅</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "#1a6b3a", marginTop: 16 }}>已儲存！</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#7a5c3a", marginTop: 16 }}>已儲存！</div>
       <div style={{ fontSize: 14, color: "#A59482", marginTop: 8 }}>可在「紀錄」頁查看</div>
     </div>
   );
 }
 
-function SalesTab({ onSave, customers }) {
+function SalesTab({ onSave, customers, records = [] }) {
   const [items, setItems] = useState([]);
   const [shipping, setShipping] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [showSave, setShowSave] = useState(false);
   const [priceType, setPriceType] = useState(2);
   const [flash, setFlash] = useState(false);
+  const [saleDate, setSaleDate] = useState(todayFull());
+
+  const salesTop5 = (() => {
+    const t = {};
+    records.filter(r => r.type === "sale").forEach(r => {
+      (r.items || []).forEach(i => { t[i.name] = (t[i.name] || 0) + (Number(i.qty) || 0); });
+    });
+    return Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  })();
+
+  const nowSales = new Date();
+  const thisMSales = nowSales.getMonth() + 1;
+  const thisYSales = nowSales.getFullYear();
+  const lastMSales = thisMSales === 1 ? 12 : thisMSales - 1;
+  const lastMYSales = thisMSales === 1 ? thisYSales - 1 : thisYSales;
+
+  const parseSalesDateYM = (dateStr) => {
+    if (!dateStr) return {};
+    const parts = dateStr.split("/");
+    if (parts.length >= 2) return { year: Number(parts[0]), month: Number(parts[1]) };
+    return {};
+  };
+
+  const thisMonthSalesNet = records.filter(r => r.type === "sale").filter(r => {
+    const { year, month } = parseSalesDateYM(r.date);
+    return year === thisYSales && month === thisMSales;
+  }).reduce((s, r) => s + r.netProfit, 0);
+
+  const lastMonthSalesNet = records.filter(r => r.type === "sale").filter(r => {
+    const { year, month } = parseSalesDateYM(r.date);
+    return year === lastMYSales && month === lastMSales;
+  }).reduce((s, r) => s + r.netProfit, 0);
 
   const addItem = (p) => { setItems(prev => [...prev, { ...p, qty: 1, type: priceType }]); setShowPicker(false); };
   const updateItem = (name, field, val) => setItems(prev => prev.map(i => i.name === name ? { ...i, [field]: val } : i));
@@ -600,17 +707,30 @@ function SalesTab({ onSave, customers }) {
   const margin = totalRevenue > 0 ? (netProfit / totalRevenue * 100) : 0;
 
   const handleSave = (customer, note, customerId) => {
-    const record = { id: nowId(), date: today(), type: "sale", customer, note, customerId, items: items.map(i => ({ name: i.name, qty: i.qty, priceLabel: PRICE_LABELS[i.type], unitPrice: i.prices[i.type], unitCost: i.cost })), totalRevenue, totalCost, shipping: ship, netProfit, margin: margin.toFixed(1) };
+    const record = { id: nowId(), date: saleDate, type: "sale", customer, note, customerId, items: items.map(i => ({ name: i.name, qty: i.qty, priceLabel: PRICE_LABELS[i.type], unitPrice: i.prices[i.type], unitCost: i.cost })), totalRevenue, totalCost, shipping: ship, netProfit, margin: margin.toFixed(1) };
     onSave(record);
     setShowSave(false);
     setFlash(true);
-    setTimeout(() => { setFlash(false); setItems([]); setShipping(""); }, 1800);
+    setTimeout(() => { setFlash(false); setItems([]); setShipping(""); setSaleDate(todayFull()); }, 1800);
   };
 
   if (flash) return <SuccessFlash />;
   return (
     <div>
       {showSave && <SaveModal isSale profit={netProfit} customers={customers} onSave={handleSave} onCancel={() => setShowSave(false)} />}
+      <Card style={{ background: "linear-gradient(135deg,#7a6352,#9A6852)", padding: "14px 16px", marginBottom: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>上月總淨利</div>
+            <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 20, fontWeight: 700 }}>{ntd(lastMonthSalesNet)}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>本月總淨利</div>
+            <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 20, fontWeight: 700 }}>{ntd(thisMonthSalesNet)}</div>
+          </div>
+        </div>
+      </Card>
+      <div style={{ height: 8 }} />
       <Card>
         <Label>售價類型</Label>
         <div style={{ display: "flex", gap: 8 }}>
@@ -641,6 +761,7 @@ function SalesTab({ onSave, customers }) {
           </div>
         </Card>
       ))}
+      {items.length > 0 && <Card><Label>日期</Label><DateInput value={saleDate} onChange={setSaleDate} /></Card>}
       {items.length > 0 && <Card><Label>運費 / 手續費</Label><NumInput value={shipping} onChange={setShipping} placeholder="選填" /></Card>}
       {items.length > 0 && (
         <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 18 }}>
@@ -658,7 +779,19 @@ function SalesTab({ onSave, customers }) {
           <button onClick={() => setShowSave(true)} style={{ width: "100%", padding: 14, borderRadius: 12, border: "2px solid rgba(201,168,128,0.5)", background: "rgba(255,255,255,0.12)", color: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700 }}>💾 儲存這筆紀錄</button>
         </Card>
       )}
-      {items.length === 0 && <div style={{ textAlign: "center", color: "#C4B1A0", padding: "40px 0", fontSize: 14 }}>☝️ 點上方「選擇商品」開始記錄</div>}
+      {salesTop5.length > 0 && (
+        <Card>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#A59482", marginBottom: 10 }}>🏆 銷售排行榜</div>
+          {salesTop5.map(([name, qty], i) => (
+            <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: i < 4 ? 8 : 0 }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: ["#c6a028","#9a9a9a","#c6804a","#A59482","#A59482"][i], color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i+1}</div>
+              <div style={{ flex: 1, fontSize: 13, color: "#5a4030" }}>{name}</div>
+              <div style={{ fontSize: 12, color: "#A59482", fontWeight: 600 }}>{qty} 件</div>
+            </div>
+          ))}
+        </Card>
+      )}
+      {items.length === 0 && <div style={{ textAlign: "center", color: "#C4B1A0", padding: "20px 0", fontSize: 14 }}>☝️ 點上方「選擇商品」開始記錄</div>}
     </div>
   );
 }
@@ -733,7 +866,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
   const tagStyle = isBranch
     ? { background: "#f5f0e8", color: "#9a7050" }
     : isSale
-    ? { background: "#e8f5ec", color: "#1a6b3a" }
+    ? { background: "#ede0d4", color: "#7a4a28" }
     : { background: "#fef3e8", color: "#c17d2a" };
 
   return (
@@ -743,7 +876,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, ...tagStyle, whiteSpace: "nowrap" }}>
-                {isBranch ? "🏪 夥伴" : isSale ? "銷售" : "進貨"}
+                {isBranch ? "夥伴" : isSale ? "銷售" : "進貨"}
               </span>
               <span style={{ fontSize: 12, color: "#C4B1A0" }}>{r.date}</span>
             </div>
@@ -757,11 +890,21 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
             </div>
           </div>
           <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 10 }}>
-            <div style={{ fontSize: 16, fontFamily: "monospace", fontWeight: 700, color: isBranch ? "#9a7050" : isSale ? (r.netProfit >= 0 ? "#1a6b3a" : "#c0392b") : "#A59482" }}>
+            {isSale && (
+              <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", marginBottom: 2 }}>
+                {ntd(r.totalRevenue)}
+              </div>
+            )}
+            {isBranch && r.totalRevenue > 0 && (
+              <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", marginBottom: 2 }}>
+                {ntd(r.totalRevenue)}
+              </div>
+            )}
+            <div style={{ fontSize: 16, fontFamily: "monospace", fontWeight: 700, color: isBranch ? "#9a7050" : isSale ? (r.netProfit >= 0 ? "#7a5c3a" : "#c0392b") : "#A59482" }}>
               {isBranch ? ntd(r.netProfit) : isSale ? ntd(r.netProfit) : ntd(r.totalCost)}
             </div>
             <div style={{ fontSize: 11, color: "#C4B1A0" }}>
-              {isBranch ? "夥伴淨利" : isSale ? `利潤率 ${r.margin}%` : "進貨成本"}
+              {isSale ? "總金額 / 淨利" : isBranch ? "總金額 / 淨利" : "進貨成本"}
             </div>
           </div>
         </div>
@@ -773,7 +916,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               {r.items.filter(i => Number(i.qty) > 0).map((i, idx) => (
                 <div key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: "#5a4030" }}>{i.product} × {i.qty}</span>
-                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#1a6b3a" }}>+{ntd((Number(i.price) - Number(i.cost)) * Number(i.qty))}</span>
+                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#7a5c3a" }}>+{ntd((Number(i.price) - Number(i.cost)) * Number(i.qty))}</span>
                 </div>
               ))}
               {r.shipping > 0 && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}><span style={{ fontSize: 13, color: "#5a4030" }}>運費</span><span style={{ fontSize: 13, color: "#c0392b" }}>-{ntd(r.shipping)}</span></div>}
@@ -793,7 +936,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               ))}
               {isSale && r.shipping > 0 && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}><span style={{ fontSize: 13, color: "#5a4030" }}>運費/手續費</span><span style={{ fontSize: 13, fontFamily: "monospace", color: "#A59482" }}>{ntd(r.shipping)}</span></div>}
               <div style={{ height: 1, background: "#DBC8B6", margin: "10px 0" }} />
-              {isSale && <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", lineHeight: 1.8 }}>營業額 {ntd(r.totalRevenue)}<br />成本 {ntd(r.totalCost)}<br /><span style={{ color: r.netProfit >= 0 ? "#1a6b3a" : "#c0392b", fontWeight: 700 }}>淨利 {ntd(r.netProfit)}</span></div>}
+              {isSale && <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", lineHeight: 1.8 }}>營業額 {ntd(r.totalRevenue)}<br />成本 {ntd(r.totalCost)}<br /><span style={{ color: r.netProfit >= 0 ? "#7a5c3a" : "#c0392b", fontWeight: 700 }}>淨利 {ntd(r.netProfit)}</span></div>}
             </>
           )}
           {!isBranch && <button onClick={() => setDeleting(r.id)} style={{ marginTop: 12, width: "100%", padding: 10, borderRadius: 10, border: "1px solid #f5bdb5", background: "#fff5f4", color: "#c0392b", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>🗑 刪除</button>}
@@ -874,28 +1017,6 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
       )}
 
       {/* 累計統計 */}
-      {allRecords.length > 0 && (
-        <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16 }}>
-          <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>全部累計</div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
-            <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-              <div style={{ color: "#DBC8B6", fontSize: 11, marginBottom: 4 }}>銷售淨利</div>
-              <div style={{ color: totalSales >= 0 ? "#7de8a8" : "#ff8070", fontFamily: "monospace", fontSize: 17, fontWeight: 700 }}>{ntd(totalSales)}</div>
-            </div>
-            <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-              <div style={{ color: "#DBC8B6", fontSize: 11, marginBottom: 4 }}>進貨成本</div>
-              <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 17, fontWeight: 700 }}>{ntd(totalStock)}</div>
-            </div>
-          </div>
-          {branchRecords.length > 0 && (
-            <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-              <div style={{ color: "#DBC8B6", fontSize: 11, marginBottom: 4 }}>🏪 分店夥伴淨利</div>
-              <div style={{ color: totalBranch >= 0 ? "#7de8a8" : "#ff8070", fontFamily: "monospace", fontSize: 17, fontWeight: 700 }}>{ntd(totalBranch)}</div>
-            </div>
-          )}
-        </Card>
-      )}
-
       {/* 篩選：類型 */}
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
         {[["all", "全部"], ["sale", "銷售"], ["stock", "進貨"], ["branch", "夥伴"]].map(([v, l]) => (
@@ -932,34 +1053,72 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
         const yBranch = yr.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
         const yMargin = yRev > 0 ? (yProfit / yRev * 100).toFixed(1) : "—";
         return (
-          <Card style={{ background: "linear-gradient(135deg,#2c3e50,#4a6274)", padding: 16, marginBottom: 14 }}>
-            <div style={{ color: "#a0b8c8", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>📅 {selectedYear}年 年度統計</div>
+          <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16, marginBottom: 14 }}>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>📅 {selectedYear}年 年度統計</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
               <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#a0b8c8", fontSize: 10, marginBottom: 3 }}>年度營業額</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年度營業額</div>
                 <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yRev)}</div>
               </div>
               <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#a0b8c8", fontSize: 10, marginBottom: 3 }}>年度銷售淨利</div>
-                <div style={{ color: yProfit >= 0 ? "#7de8a8" : "#ff8070", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yProfit)}</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年度銷售淨利</div>
+                <div style={{ color: yProfit >= 0 ? "#f5e6de" : "#ff8070", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yProfit)}</div>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, marginBottom: yBranch > 0 ? 8 : 0 }}>
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#a0b8c8", fontSize: 10, marginBottom: 3 }}>年度進貨成本</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年度進貨統計</div>
                 <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yStock)}</div>
               </div>
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#a0b8c8", fontSize: 10, marginBottom: 3 }}>年度利潤率</div>
-                <div style={{ color: "#fbd38d", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{yMargin}{yMargin !== "—" ? "%" : ""}</div>
+              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>分店夥伴淨利</div>
+                <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranch)}</div>
               </div>
             </div>
-            {yBranch > 0 && (
-              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#a0b8c8", fontSize: 10, marginBottom: 3 }}>🏪 分店夥伴淨利</div>
-                <div style={{ color: "#7de8a8", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranch)}</div>
+          </Card>
+        );
+      })()}
+
+      {selectedYear !== "all" && selectedMonth !== "all" && (() => {
+        const mRecords = allRecords.filter(r => {
+          const ym = getYearMonth(r);
+          return ym.year === Number(selectedYear) && ym.month === Number(selectedMonth);
+        });
+        const mRev = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + r.totalRevenue, 0);
+        const mProfit = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + r.netProfit, 0);
+        const mStock = mRecords.filter(r => r.type === "stock").reduce((s, r) => s + r.totalCost, 0);
+        const mBranch = mRecords.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
+        const mShip = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + (r.shipping || 0), 0);
+        if (mRecords.length === 0) return null;
+        return (
+          <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16, marginBottom: 14 }}>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>📅 {selectedYear}年 {selectedMonth}月</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: mStock > 0 || mBranch > 0 ? 8 : 0 }}>
+              <div style={{ flex: 1, background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
+                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mRev)}</div>
               </div>
-            )}
+              <div style={{ flex: 1, background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月銷售淨利</div>
+                <div style={{ color: mProfit >= 0 ? "#f5e6de" : "#ff8070", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mProfit)}</div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月進貨成本</div>
+                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>分店夥伴淨利</div>
+                <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranch)}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 8 }}>
+                <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出總計</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{mShip > 0 ? `-${ntd(mShip)}` : ntd(0)}</div>
+                </div>
+              </div>
           </Card>
         );
       })()}
@@ -982,9 +1141,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
                 <span style={{ fontSize: 12, color: "#C4B1A0" }}>{monthRecords.length} 筆</span>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontFamily: "monospace", fontWeight: 700, color: monthSales >= 0 ? "#1a6b3a" : "#c0392b" }}>銷售 {ntd(monthSales)}</div>
-                {monthBranch > 0 && <div style={{ fontSize: 12, fontFamily: "monospace", fontWeight: 700, color: "#9a7050" }}>🏪 {ntd(monthBranch)}</div>}
-                {monthRevenue > 0 && <div style={{ fontSize: 11, color: "#C4B1A0" }}>營業額 {ntd(monthRevenue)}</div>}
+                {monthRevenue > 0 && <div style={{ fontSize: 13, fontFamily: "monospace", fontWeight: 700, color: "#7a4a28" }}>營業額 {ntd(monthRevenue)}</div>}
                 <div style={{ fontSize: 11, color: "#C4B1A0", marginTop: 2 }}>{isCollapsed ? "▶ 展開" : "▼ 收合"}</div>
               </div>
             </div>
@@ -1135,6 +1292,39 @@ function BranchTab() {
   const totalNet = records.reduce((s, r) => s + r.netProfit, 0);
   const totalStock = records.reduce((s, r) => s + r.totalStock, 0);
 
+  const now = new Date();
+  const thisMonth = now.getMonth() + 1;
+  const thisYear = now.getFullYear();
+  const lastMonth = thisMonth === 1 ? 12 : thisMonth - 1;
+  const lastMonthYear = thisMonth === 1 ? thisYear - 1 : thisYear;
+
+  const parseDateYM = (dateStr) => {
+    if (!dateStr) return {};
+    const parts = dateStr.split("/");
+    if (parts.length >= 2) return { year: Number(parts[0]), month: Number(parts[1]) };
+    return {};
+  };
+
+  const thisMonthNet = records.filter(r => {
+    const { year, month } = parseDateYM(r.date);
+    return year === thisYear && month === thisMonth;
+  }).reduce((s, r) => s + r.netProfit, 0);
+
+  const lastMonthNet = records.filter(r => {
+    const { year, month } = parseDateYM(r.date);
+    return year === lastMonthYear && month === lastMonth;
+  }).reduce((s, r) => s + r.netProfit, 0);
+
+  const branchTop5 = (() => {
+    const t = {};
+    records.forEach(r => {
+      (r.items || []).forEach(i => { if (Number(i.qty) > 0) t[i.product] = (t[i.product] || 0) + Number(i.qty); });
+    });
+    return Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  })();
+
+  // 分店銷售前三名
+
   const levelColors = {
     "一級督導":    "#e3d3b4",
     "二級督導":    "#d2cac1",
@@ -1220,7 +1410,7 @@ function BranchTab() {
                     </div>
                   </div>
                   {it.product && it.qty > 0 && (
-                    <div style={{ fontSize: 12, color: "#1a6b3a", marginTop: 4 }}>
+                    <div style={{ fontSize: 12, color: "#7a5c3a", marginTop: 4 }}>
                       淨利：{ntd((Number(it.price) - Number(it.cost)) * Number(it.qty))}
                     </div>
                   )}
@@ -1242,7 +1432,7 @@ function BranchTab() {
               <Label>預覽</Label>
               <div style={{ fontSize: 13, color: "#A59482" }}>總進貨成本：{ntd(items.reduce((s,it) => s + Number(it.cost)*Number(it.qty), 0))}</div>
               <div style={{ fontSize: 13, color: "#A59482" }}>總營業額：{ntd(items.reduce((s,it) => s + Number(it.price)*Number(it.qty), 0))}</div>
-              <div style={{ fontSize: 18, color: "#1a6b3a", fontWeight: 700, marginTop: 4 }}>預估淨利：{ntd(calcNet(items, shipping))}</div>
+              <div style={{ fontSize: 18, color: "#7a5c3a", fontWeight: 700, marginTop: 4 }}>預估淨利：{ntd(calcNet(items, shipping))}</div>
             </Card>
 
             <button onClick={handleSave} style={{ width: "100%", padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7a6352,#9A6852)", color: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
@@ -1253,15 +1443,15 @@ function BranchTab() {
       )}
 
       {/* 統計卡 */}
-      <Card style={{ background: "linear-gradient(135deg,#7a6352,#9A6852)" }}>
+      <Card style={{ background: "linear-gradient(135deg,#7a6352,#9A6852)", padding: "14px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <div>
-            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>分店累計淨利</div>
-            <div style={{ color: "#fff", fontSize: 22, fontWeight: 700 }}>{ntd(totalNet)}</div>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>上月總淨利</div>
+            <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 20, fontWeight: 700 }}>{ntd(lastMonthNet)}</div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>分店進貨成本</div>
-            <div style={{ color: "#fff", fontSize: 22, fontWeight: 700 }}>{ntd(totalStock)}</div>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>本月總淨利</div>
+            <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 20, fontWeight: 700 }}>{ntd(thisMonthNet)}</div>
           </div>
         </div>
       </Card>
@@ -1269,6 +1459,19 @@ function BranchTab() {
       <button onClick={() => setShowForm(true)} style={{ width: "100%", padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 15, fontWeight: 700, marginBottom: 16, marginTop: 14 }}>
         ＋ 新增分店收入
       </button>
+
+      {branchTop5.length > 0 && (
+        <Card>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#A59482", marginBottom: 10 }}>🏆 銷售排行榜</div>
+          {branchTop5.map(([name, qty], i) => (
+            <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: i < 4 ? 8 : 0 }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: ["#c6a028","#9a9a9a","#c6804a","#A59482","#A59482"][i], color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i+1}</div>
+              <div style={{ flex: 1, fontSize: 13, color: "#5a4030" }}>{name}</div>
+              <div style={{ fontSize: 12, color: "#A59482", fontWeight: 600 }}>{qty} 件</div>
+            </div>
+          ))}
+        </Card>
+      )}
 
       {records.length === 0 && (
         <div style={{ textAlign: "center", color: "#C4B1A0", padding: "40px 0", fontSize: 14 }}>
@@ -1290,13 +1493,13 @@ function BranchTab() {
             {r.items.filter(it => it.product && Number(it.qty) > 0).map((it, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#A59482", marginBottom: 3 }}>
                 <span>{it.product} ×{it.qty}</span>
-                <span style={{ color: "#1a6b3a" }}>+{ntd((Number(it.price) - Number(it.cost)) * Number(it.qty))}</span>
+                <span style={{ color: "#7a5c3a" }}>+{ntd((Number(it.price) - Number(it.cost)) * Number(it.qty))}</span>
               </div>
             ))}
             {r.shipping > 0 && <div style={{ fontSize: 12, color: "#c0392b" }}>運費：-{ntd(r.shipping)}</div>}
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "1px solid #ede0d4" }}>
               <span style={{ fontSize: 12, color: "#C4B1A0" }}>進貨 {ntd(r.totalStock)}</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: r.netProfit >= 0 ? "#1a6b3a" : "#c0392b" }}>{ntd(r.netProfit)}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: r.netProfit >= 0 ? "#7a5c3a" : "#c0392b" }}>{ntd(r.netProfit)}</span>
             </div>
             {r.note && <div style={{ fontSize: 12, color: "#C4B1A0", marginTop: 4 }}>備註：{r.note}</div>}
             <button onClick={() => setDeleting(r.id)} style={{ marginTop: 6, border: "none", background: "none", color: "#C4B1A0", cursor: "pointer", fontSize: 12 }}>🗑️ 刪除</button>
@@ -1410,7 +1613,7 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose }) {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
             <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fef3e8", color: "#c17d2a" }}>{customer.platform}</span>
             <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#f0f0ff", color: "#5050c0" }}>{customer.buyCount}</span>
-            {customer.tags.map(t => <span key={t} style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f5ec", color: "#1a6b3a" }}>{t}</span>)}
+            {customer.tags.map(t => <span key={t} style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f5ec", color: "#7a5c3a" }}>{t}</span>)}
           </div>
           <div style={{ fontSize: 13, color: "#A59482", lineHeight: 2 }}>
             📅 購買日期：{customer.buyDate || "—"}<br />
@@ -1463,7 +1666,7 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose }) {
               <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid #ede0d4" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ fontSize: 13, color: "#A59482" }}>{r.date} · {r.items.map(i => i.name).join("、")}</span>
-                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#1a6b3a", fontWeight: 700 }}>{ntd(r.netProfit)}</span>
+                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#7a5c3a", fontWeight: 700 }}>{ntd(r.netProfit)}</span>
                 </div>
               </div>
             ))}
@@ -1574,13 +1777,13 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#fef3e8", color: "#c17d2a", fontWeight: 600 }}>{c.platform}</span>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#f0f0ff", color: "#5050c0", fontWeight: 600 }}>{c.buyCount}</span>
-                    {c.tags.slice(0, 2).map(t => <span key={t} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#e8f5ec", color: "#1a6b3a", fontWeight: 600 }}>{t}</span>)}
+                    {c.tags.slice(0, 2).map(t => <span key={t} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#e8f5ec", color: "#7a5c3a", fontWeight: 600 }}>{t}</span>)}
                     {followUp && <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: followUp.bg, color: followUp.color, fontWeight: 600 }}>{followUp.label}</span>}
                   </div>
                   {c.buyDate && <div style={{ fontSize: 12, color: "#C4B1A0", marginTop: 4 }}>購買：{c.buyDate}{c.careDate ? ` · 關心：${c.careDate}` : ""}</div>}
                 </div>
                 <div style={{ textAlign: "right", marginLeft: 10 }}>
-                  {custSales.length > 0 && <div style={{ fontSize: 12, color: "#1a6b3a", fontWeight: 600 }}>{custSales.length} 筆紀錄</div>}
+                  {custSales.length > 0 && <div style={{ fontSize: 12, color: "#7a5c3a", fontWeight: 600 }}>{custSales.length} 筆紀錄</div>}
                   <div style={{ fontSize: 16, color: "#C4B1A0" }}>›</div>
                 </div>
               </div>
@@ -1661,10 +1864,10 @@ function App() {
           </button>
         ))}
       </div>
-      {importMsg && <div style={{ background: importMsg.startsWith("✅") ? "#f0faf4" : "#fff5f4", padding: "10px 16px", textAlign: "center", fontSize: 14, color: importMsg.startsWith("✅") ? "#1a6b3a" : "#c0392b", borderBottom: "1px solid #DBC8B6" }}>{importMsg}</div>}
+      {importMsg && <div style={{ background: importMsg.startsWith("✅") ? "#f0faf4" : "#fff5f4", padding: "10px 16px", textAlign: "center", fontSize: 14, color: importMsg.startsWith("✅") ? "#7a5c3a" : "#c0392b", borderBottom: "1px solid #DBC8B6" }}>{importMsg}</div>}
       <div style={{ padding: "16px 16px 80px" }}>
         {tab === 0 && <StockTab onSave={addRecord} />}
-        {tab === 1 && <SalesTab onSave={addRecord} customers={customers} />}
+        {tab === 1 && <SalesTab onSave={addRecord} customers={customers} records={records} />}
         {tab === 2 && <CustomersTab customers={customers} onAdd={addCustomer} onUpdate={updateCustomer} onDelete={deleteCustomer} salesRecords={records} />}
         {tab === 3 && <BranchTab />}
         {tab === 4 && <HistoryTab records={records} onDelete={deleteRecord} exportData={exportData} importData={importData} />}
