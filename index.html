@@ -192,7 +192,7 @@ const PLATFORMS = ["LINE", "Instagram", "蝦皮", "Threads", "TikTok", "面交",
 const CONTACT_METHODS = ["LINE", "Instagram", "蝦皮", "Threads", "TikTok", "其他"];
 const BUY_COUNTS = ["首次購買", "回購", "回購3次以上"];
 const TAGS = ["纖體", "美肌", "大健康", "纖體班", "飲控百科", "加盟", "試用包", "未取貨", "VIP社群"];
-const TABS = ["進貨", "銷售", "顧客", "分店", "紀錄", "寵物", "備份"];
+const TABS = ["進貨", "銷售", "顧客", "夥伴", "紀錄", "寵物", "備份"];
 const ntd = (n) => `NT$${Number(n).toLocaleString()}`;
 const nowId = () => Date.now().toString();
 const today = () => new Date().toLocaleDateString("zh-TW", { month: "numeric", day: "numeric", weekday: "short" });
@@ -955,6 +955,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [collapsedMonths, setCollapsedMonths] = useState({});
+  const [searchText, setSearchText] = useState("");
 
   // 讀取分店紀錄
   const branchRecords = (() => {
@@ -986,6 +987,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
     if (filter !== "all" && r.type !== filter) return false;
     if (selectedYear !== "all" && year !== Number(selectedYear)) return false;
     if (selectedMonth !== "all" && month !== Number(selectedMonth)) return false;
+    if (searchText && !(r.customer || r.partner || "").includes(searchText)) return false;
     return true;
   });
 
@@ -1019,6 +1021,50 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
       )}
 
       {/* 累計統計 */}
+      {/* 搜尋 */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 14, padding: "10px 14px", marginBottom: 12, boxShadow: "0 2px 12px rgba(139,90,43,0.08)" }}>
+        <span style={{ fontSize: 16, color: "#C4B1A0" }}>🔍</span>
+        <input value={searchText} onChange={e => setSearchText(e.target.value)} placeholder="搜尋顧客或夥伴名字..."
+          style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#5a4030", outline: "none" }} />
+        {searchText && <button onClick={() => setSearchText("")} style={{ border: "none", background: "none", color: "#C4B1A0", cursor: "pointer", fontSize: 18, padding: 0 }}>✕</button>}
+      </div>
+
+      {/* 夥伴淨利統計 */}
+      {searchText && allRecords.filter(r => r.type === "branch" && (r.partner || "").includes(searchText)).length > 0 && (() => {
+        const partnerRecs = allRecords.filter(r => r.type === "branch" && (r.partner || "").includes(searchText));
+        const totalP = partnerRecs.reduce((s, r) => s + r.netProfit, 0);
+        const now = new Date();
+        const thisM = now.getMonth() + 1;
+        const thisY = now.getFullYear();
+        const monthP = partnerRecs.filter(r => {
+          const parts = (r.date || "").split("/");
+          return Number(parts[0]) === thisY && Number(parts[1]) === thisM;
+        }).reduce((s, r) => s + r.netProfit, 0);
+        const yearP = partnerRecs.filter(r => {
+          const parts = (r.date || "").split("/");
+          return Number(parts[0]) === thisY;
+        }).reduce((s, r) => s + r.netProfit, 0);
+        return (
+          <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 14, marginBottom: 12 }}>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>🐻 夥伴「{searchText}」淨利統計</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>本月</div>
+                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(monthP)}</div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>今年</div>
+                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(yearP)}</div>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>累計</div>
+                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(totalP)}</div>
+              </div>
+            </div>
+          </Card>
+        );
+      })()}
+
       {/* 篩選：類型 */}
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
         {[["all", "全部"], ["sale", "銷售"], ["stock", "進貨"], ["branch", "夥伴"]].map(([v, l]) => (
@@ -1073,7 +1119,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
                 <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yStock)}</div>
               </div>
               <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>分店夥伴淨利</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>夥伴淨利</div>
                 <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranch)}</div>
               </div>
             </div>
@@ -1111,7 +1157,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
                 <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
               </div>
               <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>分店夥伴淨利</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>夥伴淨利</div>
                 <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranch)}</div>
               </div>
             </div>
@@ -1185,7 +1231,7 @@ function BackupTab({ records, customers, exportData, importData }) {
 
       <Card>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#A59482", marginBottom: 6 }}>📤 匯出備份</div>
-        <div style={{ fontSize: 12, color: "#C4B1A0", marginBottom: 12 }}>將所有資料（銷售、進貨、顧客、分店）存入檔案</div>
+        <div style={{ fontSize: 12, color: "#C4B1A0", marginBottom: 12 }}>將所有資料（銷售、進貨、顧客、夥伴）存入檔案</div>
         <button onClick={exportData}
           style={{ width: "100%", padding: 13, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 15, fontWeight: 700 }}>
           📤 匯出備份
@@ -1341,7 +1387,7 @@ function BranchTab() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ background: "#fff", borderRadius: 20, padding: 24, width: "100%", maxWidth: 320, textAlign: "center" }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🗑️</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#A59482", marginBottom: 16 }}>確定刪除這筆分店收入？</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#A59482", marginBottom: 16 }}>確定刪除這筆夥伴收入？</div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setDeleting(null)} style={{ flex: 1, padding: 12, borderRadius: 12, border: "1.5px solid #DBC8B6", background: "#fff", color: "#A59482", cursor: "pointer" }}>取消</button>
               <button onClick={() => handleDelete(deleting)} style={{ flex: 1, padding: 12, borderRadius: 12, border: "none", background: "#c0392b", color: "#fff", cursor: "pointer", fontWeight: 700 }}>刪除</button>
@@ -1355,7 +1401,7 @@ function BranchTab() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 100, overflowY: "auto" }}>
           <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 20, marginTop: 60, minHeight: "calc(100vh - 60px)", boxSizing: "border-box" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#A59482" }}>📋 新增分店收入</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#A59482" }}>📋 新增夥伴收入</div>
               <button onClick={() => setShowForm(false)} style={{ border: "none", background: "none", fontSize: 22, color: "#C4B1A0", cursor: "pointer" }}>✕</button>
             </div>
 
@@ -1431,9 +1477,9 @@ function BranchTab() {
 
             {/* 預覽 */}
             <Card style={{ background: "#f7f2ee" }}>
-              <Label>分店淨利總計</Label>
+              <Label>夥伴淨利總計</Label>
               <div style={{ fontSize: 13, color: "#A59482" }}>進貨成本：{ntd(items.reduce((s,it) => s + Number(it.cost)*Number(it.qty), 0))}</div>
-              <div style={{ fontSize: 13, color: "#A59482" }}>分店總淨利：{ntd(items.reduce((s,it) => s + (Number(it.price)-Number(it.cost))*Number(it.qty), 0))}</div>
+              <div style={{ fontSize: 13, color: "#A59482" }}>夥伴總淨利：{ntd(items.reduce((s,it) => s + (Number(it.price)-Number(it.cost))*Number(it.qty), 0))}</div>
               <div style={{ fontSize: 18, color: "#7a5c3a", fontWeight: 700, marginTop: 4 }}>總金額：{ntd(items.reduce((s,it) => s + Number(it.price)*Number(it.qty), 0))}</div>
             </Card>
 
@@ -1459,7 +1505,7 @@ function BranchTab() {
       </Card>
 
       <button onClick={() => setShowForm(true)} style={{ width: "100%", padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 15, fontWeight: 700, marginBottom: 16, marginTop: 14 }}>
-        ＋ 新增分店收入
+        ＋ 新增夥伴收入
       </button>
 
       {branchTop5.length > 0 && (
@@ -1478,7 +1524,7 @@ function BranchTab() {
       {records.length === 0 && (
         <div style={{ textAlign: "center", color: "#C4B1A0", padding: "40px 0", fontSize: 14 }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🏪</div>
-          還沒有分店收入紀錄
+          還沒有夥伴收入紀錄
         </div>
       )}
 
@@ -1522,15 +1568,31 @@ function CustomerForm({ customer, onSave, onCancel }) {
   const [buyCount, setBuyCount] = useState(customer?.buyCount || "首次購買");
   const [buyDate, setBuyDate] = useState(customer?.buyDate || todayFull());
   const [careDate, setCareDate] = useState(customer?.careDate || "");
+  const [receivedDate, setReceivedDate] = useState(customer?.receivedDate || "");
   const [careNote, setCareNote] = useState(customer?.careNote || "");
   const [tags, setTags] = useState(customer?.tags || []);
-  const [purchases, setPurchases] = useState(customer?.purchases || [{ date: "", product: "", note: "" }]);
+  const [purchases, setPurchases] = useState(customer?.purchases || [{ date: todayFull(), products: [], note: "" }]);
   const [usage, setUsage] = useState(customer?.usage || { morning: "", noon: "", evening: "", sleep: "" });
   const toggleTag = (t) => setTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
-  const addPurchase = () => setPurchases(prev => [...prev, { date: "", product: "", note: "" }]);
+  const addPurchase = () => setPurchases(prev => [...prev, { date: todayFull(), products: [], note: "" }]);
   const updatePurchase = (i, field, val) => setPurchases(prev => prev.map((p, idx) => idx === i ? { ...p, [field]: val } : p));
   const removePurchase = (i) => setPurchases(prev => prev.filter((_, idx) => idx !== i));
-  const handleSave = () => { if (!name.trim()) return alert("請填入顧客名稱"); onSave({ id: customer?.id || nowId(), name: name.trim(), platform, contact, contactMethod, contactNote, buyCount, buyDate, careDate, careNote, tags, purchases, usage }); };
+  const toggleProduct = (i, prod) => setPurchases(prev => prev.map((p, idx) => {
+    if (idx !== i) return p;
+    const prods = p.products || [];
+    const qtys = p.qtys || {};
+    if (prods.includes(prod)) {
+      const newQtys = { ...qtys };
+      delete newQtys[prod];
+      return { ...p, products: prods.filter(x => x !== prod), qtys: newQtys };
+    }
+    return { ...p, products: [...prods, prod], qtys: { ...qtys, [prod]: 1 } };
+  }));
+  const updateProductQty = (i, prod, qty) => setPurchases(prev => prev.map((p, idx) => {
+    if (idx !== i) return p;
+    return { ...p, qtys: { ...(p.qtys || {}), [prod]: Number(qty) || 1 } };
+  }));
+  const handleSave = () => { if (!name.trim()) return alert("請填入顧客名稱"); onSave({ id: customer?.id || nowId(), name: name.trim(), platform, contact, contactMethod, contactNote, buyCount, buyDate, careDate, careNote, tags, purchases, usage, receivedDate }); };
   return (
     <div style={{ position: "fixed", inset: 0, background: "#ede0d4", zIndex: 200, overflowY: "auto" }}>
       <div style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: "44px 20px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12 }}>
@@ -1564,13 +1626,21 @@ function CustomerForm({ customer, onSave, onCancel }) {
         </Card>
         <Card><Label>購買日期</Label><DateInput value={buyDate} onChange={setBuyDate} /></Card>
         <Card>
+          <Label>收貨日期</Label>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <DateInput value={receivedDate} onChange={setReceivedDate} />
+            {!receivedDate && <button onClick={() => setReceivedDate(todayFull())} style={{ padding: "8px 14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>已收貨</button>}
+            {receivedDate && <button onClick={() => setReceivedDate("")} style={{ padding: "8px 14px", borderRadius: 20, border: "none", background: "#ede0d4", color: "#A59482", cursor: "pointer", fontSize: 13, flexShrink: 0 }}>清除</button>}
+          </div>
+        </Card>
+        <Card>
           <Label>標籤</Label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {TAGS.map(t => <button key={t} onClick={() => toggleTag(t)} style={{ padding: "7px 14px", borderRadius: 20, border: "none", cursor: "pointer", background: tags.includes(t) ? "#C6A992" : "#ede0d4", color: tags.includes(t) ? "#fff" : "#A59482", fontWeight: 600, fontSize: 13 }}>{t}</button>)}
           </div>
         </Card>
         <Card>
-          <Label>已關心日期</Label>
+          <Label>下次關心日期</Label>
           <DateInput value={careDate} onChange={setCareDate} />
           <div style={{ marginTop: 10 }}><Label>關心事項</Label><TextInput value={careNote} onChange={setCareNote} placeholder="例：試用、健康問題" /></div>
         </Card>
@@ -1587,12 +1657,36 @@ function CustomerForm({ customer, onSave, onCancel }) {
               </div>
               <div style={{ marginBottom: 6 }}><Label>日期</Label><DateInput value={p.date} onChange={v => updatePurchase(i, "date", v)} /></div>
               <div style={{ marginBottom: 6 }}>
-                <Label>購買產品</Label>
-                <select value={p.product} onChange={e => updatePurchase(i, "product", e.target.value)}
-                  style={{ width: "100%", border: "1.5px solid #DBC8B6", borderRadius: 8, padding: "9px 10px", fontSize: 14, background: "#fff", color: p.product ? "#5a4030" : "#C4B1A0", outline: "none" }}>
-                  <option value="">請選擇商品</option>
-                  {PRODUCTS.map(pr => <option key={pr.name} value={pr.name}>{pr.name}</option>)}
-                </select>
+                <Label>購買產品（可多選）</Label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: (p.products||[]).length > 0 ? 10 : 0 }}>
+                  {PRODUCTS.map(pr => {
+                    const selected = (p.products || []).includes(pr.name);
+                    return (
+                      <button key={pr.name} onClick={() => toggleProduct(i, pr.name)}
+                        style={{ padding: "5px 12px", borderRadius: 20, border: "none", cursor: "pointer", fontSize: 12, fontWeight: selected ? 700 : 400,
+                          background: selected ? "#C6A992" : "#ede0d4", color: selected ? "#fff" : "#A59482" }}>
+                        {pr.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                {(p.products || []).length > 0 && (
+                  <div style={{ background: "#fff", borderRadius: 10, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 11, color: "#A59482", fontWeight: 700, marginBottom: 6 }}>商品數量</div>
+                    {(p.products || []).map(prod => (
+                      <div key={prod} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <span style={{ flex: 1, fontSize: 13, color: "#5a4030" }}>{prod}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <button onClick={() => updateProductQty(i, prod, Math.max(1, ((p.qtys||{})[prod]||1)-1))}
+                            style={{ width: 26, height: 26, borderRadius: "50%", border: "none", background: "#ede0d4", color: "#A59482", cursor: "pointer", fontSize: 15, fontWeight: 700 }}>−</button>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: "#5a4030", minWidth: 20, textAlign: "center" }}>{(p.qtys||{})[prod]||1}</span>
+                          <button onClick={() => updateProductQty(i, prod, ((p.qtys||{})[prod]||1)+1)}
+                            style={{ width: 26, height: 26, borderRadius: "50%", border: "none", background: "#C6A992", color: "#fff", cursor: "pointer", fontSize: 15, fontWeight: 700 }}>＋</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div><Label>備註</Label><TextInput value={p.note} onChange={v => updatePurchase(i, "note", v)} placeholder="選填" /></div>
             </div>
@@ -1636,11 +1730,11 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose }) {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
             <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8ddd4", color: "#8a6a50" }}>{customer.platform}</span>
             <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#d8dde8", color: "#5a6280" }}>{customer.buyCount}</span>
-            {customer.tags.map(t => <span key={t} style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#dde8e0", color: "#5a7264" }}>{t}</span>)}
+            {customer.tags.map(t => { const tc = getTagColor(t); return <span key={t} style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tc.bg, color: tc.color }}>{t}</span>; })}
           </div>
           <div style={{ fontSize: 13, color: "#A59482", lineHeight: 2 }}>
             📅 購買日期：{customer.buyDate || "—"}<br />
-            💬 已關心：{customer.careDate || "—"}{customer.careNote ? ` · ${customer.careNote}` : ""}
+            💬 下次關心：{customer.careDate || "—"}{customer.careNote ? ` · ${customer.careNote}` : ""}
           </div>
         </Card>
         {custSales.length > 0 && (
@@ -1658,12 +1752,12 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose }) {
             </div>
           </Card>
         )}
-        {customer.purchases.some(p => p.product) && (
+        {customer.purchases.some(p => (p.products||[]).length > 0 || p.product) && (
           <Card>
             <Label>購買紀錄</Label>
-            {customer.purchases.filter(p => p.product).map((p, i) => (
+            {customer.purchases.filter(p => (p.products||[]).length > 0 || p.product).map((p, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #ede0d4" }}>
-                <div><div style={{ fontSize: 14, color: "#A59482", fontWeight: 600 }}>{p.product}</div>{p.note && <div style={{ fontSize: 12, color: "#A59482" }}>{p.note}</div>}</div>
+                <div><div style={{ fontSize: 13, color: "#A59482", fontWeight: 600 }}>{p.date && `${p.date} · `}{(p.products||[p.product]).filter(Boolean).map(pr => `${pr}${(p.qtys||{})[pr] > 1 ? ` ×${(p.qtys||{})[pr]}` : ""}`).join("、")}</div>{p.note && <div style={{ fontSize: 12, color: "#C4B1A0" }}>{p.note}</div>}</div>
                 <div style={{ fontSize: 12, color: "#C4B1A0" }}>{p.date}</div>
               </div>
             ))}
@@ -1708,6 +1802,18 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
   const [filterTag, setFilterTag] = useState("");
 
   // 計算購買日期距今天數
+  const TAG_COLORS = {
+    "纖體":     { bg: "#e8ddd0", color: "#7a5c3a" },
+    "美肌":     { bg: "#e2d5e0", color: "#7a4a6a" },
+    "大健康":   { bg: "#d5e0d8", color: "#3a6a50" },
+    "纖體班":   { bg: "#ddd8e8", color: "#5a4a7a" },
+    "飲控百科": { bg: "#e0ddd0", color: "#6a5a3a" },
+    "加盟":     { bg: "#d8e0e0", color: "#3a6060" },
+    "試用包":   { bg: "#e8e0d0", color: "#7a6040" },
+    "未取貨":   { bg: "#e8d8d5", color: "#7a3a3a" },
+    "VIP社群":  { bg: "#d8dce8", color: "#3a4a7a" },
+  };
+  const getTagColor = (t) => TAG_COLORS[t] || { bg: "#e2d8d0", color: "#6a5040" };
   const getDaysSince = (dateStr) => {
     if (!dateStr) return null;
     const parts = dateStr.replace(/\//g, "-").split("-");
@@ -1719,15 +1825,34 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
     return isNaN(diff) ? null : diff;
   };
 
-  // 判斷是否需要關心（第3天或第7天，且尚未關心）
+  // 判斷是否需要關心
+  const getDaysUntil = (dateStr) => {
+    if (!dateStr) return null;
+    const parts = dateStr.replace(/\//g, "-").split("-");
+    if (parts.length !== 3) return null;
+    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.floor((d - today) / (1000 * 60 * 60 * 24));
+    return isNaN(diff) ? null : diff;
+  };
+
   const getNeedFollowUp = (c) => {
-    if (c.careDate) return null; // 已關心就不提醒
-    const days = getDaysSince(c.buyDate);
+    // 下次關心日期到期提醒（優先）
+    if (c.careDate) {
+      const daysUntil = getDaysUntil(c.careDate);
+      if (daysUntil !== null && daysUntil <= 0) return { label: "關心日期已到", color: "#c0392b", bg: "#fff0ee", days: 0, isCare: true };
+      if (daysUntil !== null && daysUntil === 1) return { label: "明天關心", color: "#e67e22", bg: "#fff3e0", days: 1, isCare: true };
+      return null;
+    }
+    // 收貨/購買後第3/7天提醒
+    const refDate = c.receivedDate || c.buyDate;
+    const days = getDaysSince(refDate);
     if (days === null) return null;
     if (days === 3) return { label: "第3天提醒", color: "#e67e22", bg: "#fff3e0", days };
     if (days === 7) return { label: "第7天提醒", color: "#c0392b", bg: "#fff0ee", days };
-    if (days > 3 && days < 7 && !c.careDate) return { label: `第${days}天`, color: "#A59482", bg: "#faf6f2", days };
-    if (days > 7 && !c.careDate) return { label: `第${days}天未關心`, color: "#c0392b", bg: "#fff0ee", days };
+    if (days > 3 && days < 7) return { label: `第${days}天`, color: "#A59482", bg: "#faf6f2", days };
+    if (days > 7) return { label: `第${days}天未關心`, color: "#c0392b", bg: "#fff0ee", days };
     return null;
   };
 
@@ -1736,8 +1861,8 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
     return [...list].sort((a, b) => {
       const fa = getNeedFollowUp(a);
       const fb = getNeedFollowUp(b);
-      const urgencyA = fa ? (fa.days === 7 ? 0 : fa.days === 3 ? 1 : 2) : 99;
-      const urgencyB = fb ? (fb.days === 7 ? 0 : fb.days === 3 ? 1 : 2) : 99;
+      const urgencyA = fa ? (fa.isCare && fa.days <= 0 ? 0 : fa.days === 7 ? 1 : fa.days === 3 ? 2 : 3) : 99;
+      const urgencyB = fb ? (fb.isCare && fb.days <= 0 ? 0 : fb.days === 7 ? 1 : fb.days === 3 ? 2 : 3) : 99;
       if (urgencyA !== urgencyB) return urgencyA - urgencyB;
       return 0;
     });
@@ -1749,9 +1874,56 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
 
   // 需要提醒的數量（第3天或第7天）
   const urgentCount = customers.filter(c => {
-    const days = getDaysSince(c.buyDate);
-    return !c.careDate && (days === 3 || days === 7);
+    if (c.careDate) {
+      const daysUntil = getDaysUntil(c.careDate);
+      return daysUntil !== null && daysUntil <= 0;
+    }
+    const refDate = c.receivedDate || c.buyDate;
+    const days = getDaysSince(refDate);
+    return days === 3 || days === 7;
   }).length;
+
+  // 節日提醒
+  const getHolidayReminder = () => {
+    const now = new Date();
+    const m = now.getMonth() + 1;
+    const d = now.getDate();
+
+    // 農曆春節（估算：通常1/20~2/20之間，用固定常見日期）
+    const lunarNewYears = [
+      { y: 2025, m: 1, d: 29 }, { y: 2026, m: 2, d: 17 }, { y: 2027, m: 2, d: 6 },
+      { y: 2028, m: 1, d: 26 }, { y: 2029, m: 2, d: 13 }, { y: 2030, m: 2, d: 3 },
+    ];
+    const y = now.getFullYear();
+    const lunar = lunarNewYears.find(l => l.y === y);
+    if (lunar) {
+      const start = new Date(lunar.y, lunar.m - 1, lunar.d);
+      const end = new Date(lunar.y, lunar.m - 1, lunar.d + 4);
+      const today = new Date(y, m - 1, d);
+      if (today >= start && today <= end) {
+        const dayNum = Math.floor((today - start) / 86400000) + 1;
+        return { emoji: "🧧", text: `新年快樂！大年初${["一","二","三","四","五"][dayNum-1]}到囉，趕快給老顧客一個溫暖的新春祝福吧 🌸` };
+      }
+    }
+
+    // 中秋節（農曆8/15，估算）
+    const midAutumn = [
+      { y: 2025, m: 10, d: 6 }, { y: 2026, m: 9, d: 25 }, { y: 2027, m: 10, d: 15 },
+      { y: 2028, m: 10, d: 3 }, { y: 2029, m: 9, d: 22 }, { y: 2030, m: 10, d: 11 },
+    ];
+    const ma = midAutumn.find(l => l.y === y);
+    if (ma && m === ma.m && d === ma.d) {
+      return { emoji: "🌕", text: "中秋節快樂！月圓人團圓，記得給老顧客送上一個暖心的節日祝福吧 🥮" };
+    }
+
+    // 聖誕節（12/24~12/25）
+    if (m === 12 && (d === 24 || d === 25)) {
+      return { emoji: "🎄", text: `聖誕${d === 24 ? "夜" : "節"}到囉！快去給老顧客送上一個溫暖的聖誕祝福吧 🎁` };
+    }
+
+    return null;
+  };
+  const holidayReminder = getHolidayReminder();
 
   const handleSave = (c) => { if (editCustomer) onUpdate(c); else onAdd(c); setShowForm(false); setEditCustomer(null); };
 
@@ -1759,6 +1931,16 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
     <div>
       {showForm && <CustomerForm customer={editCustomer} onSave={handleSave} onCancel={() => { setShowForm(false); setEditCustomer(null); }} />}
       {viewCustomer && <CustomerDetail customer={viewCustomer} salesRecords={salesRecords} onEdit={() => { setEditCustomer(viewCustomer); setShowForm(true); setViewCustomer(null); }} onDelete={() => { onDelete(viewCustomer.id); setViewCustomer(null); }} onClose={() => setViewCustomer(null)} />}
+
+      {/* 節日橫幅 */}
+      {holidayReminder && (
+        <div style={{ background: "linear-gradient(135deg, #b5822a, #e8b84b)", borderRadius: 14, padding: "12px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 24 }}>{holidayReminder.emoji}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, lineHeight: 1.5 }}>{holidayReminder.text}</div>
+          </div>
+        </div>
+      )}
 
       {/* 提醒橫幅 */}
       {urgentCount > 0 && (
@@ -1799,19 +1981,18 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords }) {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, color: "#A59482" }}>{c.name}</div>
                     {c.contactMethod && (
-                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: "#ddd5e8", color: "#6b5a7e", fontWeight: 700, flexShrink: 0 }}>
-                        {c.contactMethod === "其他" ? (c.contactNote || "其他") : c.contactMethod}
-                        {c.contact ? ` ${c.contact}` : ""}
+                      <span style={{ fontSize: 11, color: "#A59482", flexShrink: 0 }}>
+                        聯絡方式｜{c.contactMethod === "其他" ? (c.contactNote || "其他") : c.contactMethod}{c.contact ? `: ${c.contact}` : ""}
                       </span>
                     )}
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#e8ddd4", color: "#8a6a50", fontWeight: 600 }}>{c.platform}</span>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#d8dde8", color: "#5a6280", fontWeight: 600 }}>{c.buyCount}</span>
-                    {c.tags.slice(0, 2).map(t => <span key={t} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#dde8e0", color: "#5a7264", fontWeight: 600 }}>{t}</span>)}
+                    {c.tags.slice(0, 2).map(t => { const tc = getTagColor(t); return <span key={t} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: tc.bg, color: tc.color, fontWeight: 600 }}>{t}</span>; })}
                     {followUp && <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: followUp.bg, color: followUp.color, fontWeight: 600 }}>{followUp.label}</span>}
                   </div>
-                  {c.buyDate && <div style={{ fontSize: 12, color: "#C4B1A0", marginTop: 4 }}>購買：{c.buyDate}{c.careDate ? ` · 關心：${c.careDate}` : ""}</div>}
+                  {c.buyDate && <div style={{ fontSize: 12, color: "#C4B1A0", marginTop: 4 }}>購買：{c.buyDate}{c.careDate ? ` · 下次關心：${c.careDate}` : ""}</div>}
                 </div>
                 <div style={{ textAlign: "right", marginLeft: 10 }}>
                   {custSales.length > 0 && <div style={{ fontSize: 12, color: "#7a5c3a", fontWeight: 600 }}>{custSales.length} 筆紀錄</div>}
