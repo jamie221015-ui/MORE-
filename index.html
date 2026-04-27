@@ -2664,7 +2664,8 @@ function App() {
   );
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ records, customers, partners }, null, 2)], { type: "application/json" });
+    const branchRecs = (() => { try { return JSON.parse(localStorage.getItem("royal_more_branch")||"[]"); } catch { return []; } })();
+    const blob = new Blob([JSON.stringify({ records, customers, partners, branchRecords: branchRecs }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -2691,7 +2692,10 @@ function App() {
             setPartners(updated);
             try { localStorage.setItem("royal_more_branch_partners", JSON.stringify(updated)); } catch {}
           }
-          const counts = [data.records ? data.records.length + "筆紀錄" : "", data.customers ? data.customers.length + "位顧客" : "", data.partners ? data.partners.length + "位夥伴" : ""].filter(Boolean).join("、");
+          if (data.branchRecords) {
+            try { const existing = JSON.parse(localStorage.getItem("royal_more_branch")||"[]"); const ids = new Set(existing.map(r => r.id)); const merged = [...data.branchRecords.filter(r => !ids.has(r.id)), ...existing]; localStorage.setItem("royal_more_branch", JSON.stringify(merged)); } catch {}
+          }
+          const counts = [data.records ? data.records.length + "筆紀錄" : "", data.customers ? data.customers.length + "位顧客" : "", data.partners ? data.partners.length + "位夥伴" : "", data.branchRecords ? data.branchRecords.length + "筆進貨" : ""].filter(Boolean).join("、");
           setImportMsg("✅ 成功匯入 " + counts + "！");
         }
       } catch { setImportMsg("❌ 檔案格式錯誤"); }
