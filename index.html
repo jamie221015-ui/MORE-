@@ -898,7 +898,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               {isBranch ? ntd(r.netProfit) : isSale ? ntd(r.netProfit) : ntd(r.totalCost)}
             </div>
             <div style={{ fontSize: 11, color: "#C4B1A0" }}>
-              {isSale ? "總金額 / 淨利" : isBranch ? "總金額 / 淨利" : "進貨成本"}
+              {isSale ? "總金額 / 淨利" : isBranch ? "總金額 / 淨利" : "營業額 / 成本 / 淨利"}
             </div>
           </div>
         </div>
@@ -916,8 +916,8 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               {r.shipping > 0 && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}><span style={{ fontSize: 13, color: "#5a4030" }}>運費</span><span style={{ fontSize: 13, color: "#c0392b" }}>-{ntd(r.shipping)}</span></div>}
               <div style={{ height: 1, background: "#DBC8B6", margin: "10px 0" }} />
               <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", lineHeight: 1.8 }}>
-                進貨成本 {ntd(r.totalStock)}<br />
-                <span style={{ color: "#9a7050", fontWeight: 700 }}>夥伴淨利 {ntd(r.netProfit)}</span>
+                營業額 {ntd(r.totalRevenue||r.totalStock)}<br />成本 {ntd(r.totalStock)}<br />
+                <span style={{ color: "#9a7050", fontWeight: 700 }}>淨利 {ntd(r.netProfit)}</span>
               </div>
             </>
           ) : (
@@ -933,7 +933,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               {isSale && <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", lineHeight: 1.8 }}>營業額 {ntd(r.totalRevenue)}<br />成本 {ntd(r.totalCost)}<br /><span style={{ color: r.netProfit >= 0 ? "#7a5c3a" : "#c0392b", fontWeight: 700 }}>淨利 {ntd(r.netProfit)}</span></div>}
             </>
           )}
-          {!isBranch && <button onClick={() => setDeleting(r.id)} style={{ marginTop: 12, width: "100%", padding: 10, borderRadius: 10, border: "1px solid #f5bdb5", background: "#fff5f4", color: "#c0392b", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>🗑 刪除</button>}
+          <button onClick={() => setDeleting(r.id)} style={{ marginTop: 12, width: "100%", padding: 10, borderRadius: 10, border: "1px solid #f5bdb5", background: "#fff5f4", color: "#c0392b", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>🗑 刪除</button>
         </div>
       )}
     </Card>
@@ -950,9 +950,9 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
   const [searchText, setSearchText] = useState("");
 
   // 讀取分店紀錄
-  const branchRecords = (() => {
-    try { const s = localStorage.getItem(LS_BRANCH); return s ? JSON.parse(s) : []; } catch { return []; }
-  })();
+  const [branchRecords, setBranchRecords] = useState(() => {
+    try { const s = localStorage.getItem("royal_more_branch"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
 
   // 合併所有紀錄，分店加上 type: "branch"
   const allRecords = [
@@ -966,8 +966,12 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
 
   // 從 date 字串取得年月，格式 "4/16（四）" → 用 id (timestamp) 判斷年份
   const getYearMonth = (r) => {
+    if (r.date) {
+      const d = new Date(r.date.replace(/\//g, '-').split(' ')[0]);
+      if (!isNaN(d.getFullYear())) return { year: d.getFullYear(), month: d.getMonth() + 1 };
+    }
     const d = new Date(Number(r.id));
-    return { year: d.getFullYear(), month: d.getMonth() + 1 };
+    return { year: isNaN(d.getFullYear()) ? new Date().getFullYear() : d.getFullYear(), month: d.getMonth() + 1 };
   };
 
   // 取得所有年份（含分店）
@@ -1006,7 +1010,13 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
             <div style={{ fontSize: 13, color: "#A59482", marginBottom: 20 }}>刪除後無法復原</div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setDeleting(null)} style={{ flex: 1, padding: 12, borderRadius: 12, border: "1.5px solid #DBC8B6", background: "#fff", color: "#A59482", cursor: "pointer", fontSize: 14 }}>取消</button>
-              <button onClick={() => { onDelete(deleting); setDeleting(null); setExpanded(null); }} style={{ flex: 1, padding: 12, borderRadius: 12, border: "none", background: "#c0392b", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>刪除</button>
+              <button onClick={() => {
+                const isBranchRec = branchRecords.some(r => r.id === deleting);
+                if (isBranchRec) {
+                  const upd = branchRecords.filter(r => r.id !== deleting); try { localStorage.setItem("royal_more_branch", JSON.stringify(upd)); } catch {} setBranchRecords(upd);
+                } else { onDelete(deleting); }
+                setDeleting(null); setExpanded(null);
+              }} style={{ flex: 1, padding: 12, borderRadius: 12, border: "none", background: "#c0392b", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>刪除</button>
             </div>
           </div>
         </div>
@@ -1111,7 +1121,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
                 <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yStock)}</div>
               </div>
               <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>夥伴淨利</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>淨利</div>
                 <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranch)}</div>
               </div>
             </div>
@@ -1145,11 +1155,11 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
               <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月進貨成本</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>成本</div>
                 <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
               </div>
               <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>夥伴淨利</div>
+                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>淨利</div>
                 <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranch)}</div>
               </div>
             </div>
@@ -1264,7 +1274,7 @@ const BRANCH_PRICES = {
   "實習零售加盟": [1160,660,780,1160,780,780,780,990,840,1260,990,530,780,990,780,550,2000,990,840,530,1260,780,530,190,145,24,30],
 };
 
-function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEditPartner, setShowPartnerForm, ntd, levelColors, onConvertToCustomer }) {
+function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEditPartner, setShowPartnerForm, ntd, levelColors, onConvertToCustomer, setRecords, setAllRecords }) {
   const LEVEL_DARK = ["皇家督導輔導","一級督導輔導","二級督導輔導"];
   const textColorForLevel = (l) => LEVEL_DARK.includes(l) ? "#fff" : "#5a3a1a";
   const vp = partners.find(p => p.id === viewPartner.id) || viewPartner;
@@ -1311,11 +1321,22 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
           {(vp.careLog||[]).length > 0 && (
             <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #ede0d4", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 12, color: "#A59482", fontWeight: 700 }}>🐻 本月互動 {(() => { const now = new Date(); const ym = now.getFullYear()*100+now.getMonth()+1; const pfx = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`; return (vp.careLog||[]).filter(c => (c.date||"").startsWith(pfx)).length; })()} 次</div>
-              <div style={{ fontSize: 12, color: "#C4B1A0" }}>互動日｜{(vp.careLog||[]).slice(-1)[0]?.date.split(" ")[0].replace(/\//g,"-")}</div>
+              <div style={{ fontSize: 12, color: "#C4B1A0" }}>上次關心｜{(vp.careLog||[]).slice(-1)[0]?.date.split(" ")[0]}</div>
             </div>
           )}
         </Card>
 
+        {(vp.careNotes||[]).length > 0 && (
+          <Card>
+            <Label>關心記錄</Label>
+            {(vp.careNotes||[]).map((cn, idx) => (
+              <div key={idx} style={{ padding: "8px 0", borderBottom: idx < (vp.careNotes||[]).length-1 ? "1px solid #ede0d4" : "none" }}>
+                <div style={{ fontSize: 11, color: "#C4B1A0", marginBottom: 3 }}>{cn.date}</div>
+                <div style={{ fontSize: 13, color: "#5a4030" }}>{cn.note}</div>
+              </div>
+            ))}
+          </Card>
+        )}
         {/* 年月篩選 + 統計 */}
         {pr.length > 0 && (
           <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16 }}>
@@ -1413,7 +1434,15 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
             <Label>進貨紀錄（{pr.length} 筆）</Label>
             {pr.map(r => (
               <div key={r.id} style={{ padding: "10px 0", borderBottom: "1px solid #ede0d4" }}>
-                <div style={{ fontSize: 12, color: "#C4B1A0", marginBottom: 4 }}>{r.date}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, color: "#C4B1A0" }}>{r.date}</div>
+                  <button onClick={() => {
+                    const all = JSON.parse(localStorage.getItem("royal_more_branch")||"[]");
+                    const upd = all.filter(x => x.id !== r.id);
+                    localStorage.setItem("royal_more_branch", JSON.stringify(upd));
+                    if (setRecords) setRecords(upd);
+                  }} style={{ border: "none", background: "rgba(122,92,58,0.1)", color: "#7a5c3a", cursor: "pointer", fontSize: 11, padding: "2px 8px", borderRadius: 6, fontWeight: 600 }}>刪除</button>
+                </div>
                 <div style={{ fontSize: 13, color: "#A59482", marginBottom: 6 }}>{r.items.filter(it=>it.product&&Number(it.qty)>0).map(it=>`${it.product}×${it.qty}`).join("、") || "（皇家返利）"}</div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <div style={{ flex: 1, background: "#f7f2ee", borderRadius: 8, padding: "6px 10px" }}>
@@ -1445,10 +1474,11 @@ function PartnerForm({ editPartner, partners, setPartners, savePartners, setShow
   const [pLevelHistory, setPLevelHistory] = useState(editPartner?.levelHistory || []);
   const [pCourses, setPCourses] = useState(editPartner?.courses || []);
   const [pCourseOther, setPCourseOther] = useState("");
+  const [pCareNotes, setPCareNotes] = useState(editPartner?.careNotes || []);
   const COURSE_OPTIONS = ["絕對成交","執行力","領導力","引爆生命力","彩妝課程","其他"];
   const handlePartnerSave = () => {
     if (!pName.trim()) return;
-    const p = { id: editPartner?.id || nowId(), name: pName.trim(), level: pLevel, status: pStatus, joinDate: pJoinDate, area: pArea, birthday: pBirthday, levelHistory: pLevelHistory, courses: pCourses, courseOther: pCourseOther };
+    const p = { id: editPartner?.id || nowId(), name: pName.trim(), level: pLevel, status: pStatus, joinDate: pJoinDate, area: pArea, birthday: pBirthday, levelHistory: pLevelHistory, courses: pCourses, courseOther: pCourseOther, careNotes: pCareNotes, careLog: editPartner?.careLog || [] };
     const updated = editPartner ? partners.map(x => x.id === editPartner.id ? p : x) : [p, ...partners];
     setPartners(updated); savePartners(updated); setShowPartnerForm(false);
   };
@@ -1477,6 +1507,21 @@ function PartnerForm({ editPartner, partners, setPartners, savePartners, setShow
         <Card><Label>加盟日期</Label><DateInput value={pJoinDate} onChange={setPJoinDate} /></Card>
         <Card><Label>居住地</Label><TextInput value={pArea} onChange={setPArea} placeholder="例：台北市" /></Card>
         <Card><Label>生日</Label><DateInput value={pBirthday} onChange={setPBirthday} /></Card>
+        <Card>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <Label>關心記錄</Label>
+            <button onClick={() => setPCareNotes(prev => [{ date: todayFull(), note: "" }, ...prev])} style={{ border: "none", background: "#C6A992", color: "#fff", borderRadius: 8, padding: "4px 12px", fontSize: 12, cursor: "pointer" }}>＋ 新增</button>
+          </div>
+          {pCareNotes.map((cn, idx) => (
+            <div key={idx} style={{ marginBottom: 10, background: "#f7f2ee", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <DateInput value={cn.date} onChange={v => setPCareNotes(prev => prev.map((x,i) => i===idx ? {...x, date: v} : x))} />
+                <button onClick={() => setPCareNotes(prev => prev.filter((_,i) => i !== idx))} style={{ border: "none", background: "none", color: "#C4B1A0", cursor: "pointer", fontSize: 13 }}>✕</button>
+              </div>
+              <TextInput value={cn.note} onChange={v => setPCareNotes(prev => prev.map((x,i) => i===idx ? {...x, note: v} : x))} placeholder="例：打電話聊天、關心近況..." />
+            </div>
+          ))}
+        </Card>
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <Label>升降級紀錄</Label>
@@ -1537,11 +1582,30 @@ function PartnerForm({ editPartner, partners, setPartners, savePartners, setShow
   );
 }
 
-function BranchTab({ partners, setPartners, savePartners, addCustomer }) {
+function CareModal({ partnerName, onSave, onCancel }) {
+  const [note, setNote] = useState("");
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 400, display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%", boxSizing: "border-box" }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: "#A59482", marginBottom: 4 }}>🐻 關心記錄</div>
+        <div style={{ fontSize: 13, color: "#C4B1A0", marginBottom: 16 }}>{partnerName}</div>
+        <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="輸入關心內容，例：打電話聊天、關心近況..." rows={3}
+          style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #DBC8B6", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontFamily: "inherit", resize: "none", outline: "none" }} />
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <button onClick={onCancel} style={{ flex: 1, padding: 12, borderRadius: 12, border: "1.5px solid #DBC8B6", background: "#fff", color: "#A59482", cursor: "pointer", fontSize: 14 }}>取消</button>
+          <button onClick={() => { if (note.trim()) onSave(note.trim()); else onCancel(); }} style={{ flex: 1, padding: 12, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>儲存</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecords, setAllRecords }) {
   const [records, setRecords] = useState(() => {
     try { const s = localStorage.getItem(LS_BRANCH); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [partnerSearch, setPartnerSearch] = useState("");
+  const [careModal, setCareModal] = useState(null); // { partnerId, partnerName }
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const [editPartner, setEditPartner] = useState(null);
   const [viewPartner, setViewPartner] = useState(null);
@@ -1600,7 +1664,7 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer }) {
     setRecords(updated);
     save(updated);
     setShowForm(false);
-    setPartner(""); setLevel("一級督導"); setDate(todayFull()); setItems([{ product: "", price: 0, cost: 0, qty: 0 }]); setShipping(0); setNote("");
+    setPartner(""); setLevel("一級督導輔導"); setDate(todayFull()); setItems([{ product: "", price: 0, cost: 0, qty: 0 }]); setShipping(0); setNote("");
   };
 
   const handleDelete = (id) => {
@@ -1791,8 +1855,8 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer }) {
 
             {/* 預覽 */}
             <Card style={{ background: "#f7f2ee" }}>
-              <Label>夥伴淨利總計</Label>
-              <div style={{ fontSize: 13, color: "#A59482" }}>進貨成本：{ntd(items.reduce((s,it) => s + Number(it.cost)*Number(it.qty), 0))}</div>
+              <Label>淨利總計</Label>
+              <div style={{ fontSize: 13, color: "#A59482" }}>成本：{ntd(items.reduce((s,it) => s + Number(it.cost)*Number(it.qty), 0))}</div>
               <div style={{ fontSize: 13, color: "#A59482" }}>夥伴總淨利：{ntd(items.reduce((s,it) => s + (Number(it.price)-Number(it.cost))*Number(it.qty), 0))}</div>
               <div style={{ fontSize: 18, color: "#7a5c3a", fontWeight: 700, marginTop: 4 }}>總金額：{ntd(items.reduce((s,it) => s + Number(it.price)*Number(it.qty), 0))}</div>
             </Card>
@@ -1875,7 +1939,7 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer }) {
               <Card key={p.id} style={{ padding: 0, overflow: "hidden", marginBottom: 8, cursor: "pointer" }} onClick={() => setViewPartner(p)}>
                 <div style={{ background: "#faf6f2", padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ede0d4" }}>
                   <div>
-                    <span onClick={e => { e.stopPropagation(); const n = new Date(); const now = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")} ${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}`; const updated = partners.map(x => x.id===p.id ? {...x, careLog: [...(x.careLog||[]), {date:now}]} : x); setPartners(updated); savePartners(updated); }} style={{ fontSize: 18, cursor: "pointer", marginRight: 4 }} title="記錄照顧時間">🐻</span>
+                    <span onClick={e => { e.stopPropagation(); setCareModal({ partnerId: p.id, partnerName: p.name }); }} style={{ fontSize: 18, cursor: "pointer", marginRight: 4 }} title="記錄關心">🐻</span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: "#A59482", marginRight: 6 }}>{p.name}</span>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: levelColors[p.level] || "#e3d3b4", color: textColorForLevel(p.level), fontWeight: 600 }}>{p.level}</span>
                     {p.status && <span style={{ fontSize: 11, marginLeft: 6, padding: "2px 8px", borderRadius: 10, background: p.status==="經營"?"#e8ddd0":p.status==="退出"?"#d8cec4":"#ede5db", color: p.status==="經營"?"#7a5c3a":p.status==="退出"?"#9a8070":"#a08060", fontWeight: 600 }}>{p.status}</span>}
@@ -1935,7 +1999,7 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer }) {
                       const lastDate = thisMonthLogs.slice(-1)[0]?.date.split(" ")[0].replace(/\//g,"-");
                       return (
                         <div style={{ fontSize: 11, color: "#C6A992", marginTop: 4, fontWeight: 600 }}>
-                          🤎 本月互動{thisMonthLogs.length}次｜互動日:{lastDate}
+                          本月關心{thisMonthLogs.length}次｜上次關心{lastDate}
                         </div>
                       );
                     })()}
@@ -1969,16 +2033,55 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer }) {
 
 
       {/* 夥伴詳情頁 */}
-      {viewPartner && <PartnerDetail viewPartner={viewPartner} partners={partners} records={records} setViewPartner={setViewPartner} setEditPartner={setEditPartner} setShowPartnerForm={setShowPartnerForm} ntd={ntd} levelColors={levelColors}
+      {viewPartner && <PartnerDetail viewPartner={viewPartner} partners={partners} records={records} setViewPartner={setViewPartner} setEditPartner={setEditPartner} setShowPartnerForm={setShowPartnerForm} ntd={ntd} levelColors={levelColors} setRecords={setRecords} setAllRecords={setAllRecords}
           onConvertToCustomer={() => {
             const vp = partners.find(p => p.id === viewPartner.id) || viewPartner;
-            const c = { id: `c_${Date.now()}`, name: vp.name, phone: "", platform: "", buyDate: vp.joinDate || "", buyCount: "首次購買", tags: [], note: "", purchases: [], consults: [] };
-            if (addCustomer) addCustomer(c);
-            if (window.confirm(`已將「${vp.name}」轉為顧客！是否同時刪除夥伴資料？`)) { const updated = partners.filter(p => p.id !== vp.id); setPartners(updated); savePartners(updated); }
+            const newCustId = 'c_' + Date.now();
+            const partnerRecs = records.filter(r => r.partnerId === vp.id || r.partner === vp.name);
+            const saleRecs = partnerRecs.map(r => ({
+              id: 'cs_' + r.id, date: r.date, type: 'sale',
+              customer: vp.name, customerId: newCustId,
+              note: '（由夥伴進貨轉入）',
+              items: (r.items||[]).filter(it => it.product && Number(it.qty) > 0).map(it => ({
+                name: it.product, qty: it.qty, priceLabel: 'VIP價',
+                unitPrice: Number(it.price)||0, unitCost: Number(it.cost)||0
+              })),
+              totalRevenue: r.totalRevenue||0, totalCost: r.totalStock||0,
+              shipping: r.shipping||0, netProfit: r.netProfit||0, margin: '0'
+            }));
+            const cWithMark = { id: newCustId, name: vp.name, phone: '', platform: '', buyDate: vp.joinDate || '', buyCount: '首次購買', tags: [], note: '', purchases: [], consults: [], usage: {}, careDate: '', formerPartner: true, formerPartnerRecords: partnerRecs.length };
+            if (addCustomer) addCustomer(cWithMark);
+            // 直接寫入 localStorage 並更新 allRecords state
+            if (saleRecs.length > 0) {
+              try {
+                const existing = JSON.parse(localStorage.getItem('royal_more_records')||'[]');
+                const upd = [...existing, ...saleRecs];
+                localStorage.setItem('royal_more_records', JSON.stringify(upd));
+                if (setAllRecords) setAllRecords(upd);
+              } catch(e) { console.error(e); }
+            }
+            const updatedP = partners.filter(p => p.id !== vp.id);
+            setPartners(updatedP); savePartners(updatedP);
             setViewPartner(null);
+            alert('✅ 已將「' + vp.name + '」轉為顧客！');
           }}
         />}
       {/* 夥伴資料表單 */}
+      {careModal && (
+        <CareModal
+          partnerName={careModal.partnerName}
+          onSave={(note) => {
+            const n = new Date();
+            const now = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")} ${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}`;
+            const updated = partners.map(x => x.id===careModal.partnerId ? {...x,
+              careLog: [...(x.careLog||[]), {date:now}],
+              careNotes: [{date: now.split(" ")[0], note}, ...(x.careNotes||[])]
+            } : x);
+            setPartners(updated); savePartners(updated); setCareModal(null);
+          }}
+          onCancel={() => setCareModal(null)}
+        />
+      )}
       {showPartnerForm && <PartnerForm editPartner={editPartner} partners={partners} setPartners={setPartners} savePartners={savePartners} setShowPartnerForm={setShowPartnerForm} />}
     </div>
   );
@@ -2118,7 +2221,7 @@ const TAG_COLORS = {
 };
 const getTagColor = (t) => TAG_COLORS[t] || { bg: "#e2d8d0", color: "#6a5040" };
 
-function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onConvertToPartner }) {
+function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onConvertToPartner, onDeleteRecord }) {
   const custSales = salesRecords.filter(r => r.type === "sale" && r.customerId === customer.id);
   const totalSpent = custSales.reduce((s, r) => s + r.totalRevenue, 0);
   const totalProfit = custSales.reduce((s, r) => s + r.netProfit, 0);
@@ -2142,6 +2245,11 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
             <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#d8dde8", color: "#5a6280" }}>{customer.buyCount}</span>
             {customer.tags.map(t => { const tc = getTagColor(t); return <span key={t} style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tc.bg, color: tc.color }}>{t}</span>; })}
           </div>
+          {customer.formerPartner && (
+            <div style={{ fontSize: 12, color: "#C6A992", background: "#faf6f2", borderRadius: 8, padding: "6px 12px", marginBottom: 8 }}>
+              🐻 此顧客先前為夥伴，有 {customer.formerPartnerRecords || 0} 筆進貨記錄
+            </div>
+          )}
           <div style={{ fontSize: 13, color: "#A59482", lineHeight: 2 }}>
             📅 購買日期：{customer.buyDate || "—"}<br />
             💬 下次關心：{customer.careDate || "—"}{customer.careNote ? ` · ${customer.careNote}` : ""}
@@ -2188,7 +2296,7 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
             ))}
           </Card>
         )}
-        {Object.values(customer.usage).some(v => v) && (
+        {Object.values(customer.usage||{}).some(v => v) && (
           <Card>
             <Label>產品吃法</Label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -2205,13 +2313,27 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
           <Card>
             <Label>購買記錄（{custSales.length} 筆）</Label>
             {custSales.map(r => (
-              <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid #ede0d4" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div>
-                    <span style={{ fontSize: 13, color: "#A59482" }}>{r.date} · {r.items.map(i => i.name).join("、")}</span>
-                    {r.saleNote && <div style={{ fontSize: 11, color: "#C6A992", marginTop: 2 }}>📝 {r.saleNote}</div>}
+              <div key={r.id} style={{ padding: "10px 0", borderBottom: "1px solid #ede0d4" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, color: "#C4B1A0" }}>{r.date}</div>
+                  <button onClick={() => {
+                    const all = JSON.parse(localStorage.getItem("royal_more_records")||"[]");
+                    const upd = all.filter(x => x.id !== r.id);
+                    localStorage.setItem("royal_more_records", JSON.stringify(upd));
+                    if (onDeleteRecord) onDeleteRecord(r.id);
+                  }} style={{ border: "none", background: "rgba(122,92,58,0.1)", color: "#7a5c3a", cursor: "pointer", fontSize: 11, padding: "2px 8px", borderRadius: 6, fontWeight: 600 }}>刪除</button>
+                </div>
+                <div style={{ fontSize: 13, color: "#A59482", marginBottom: 6 }}>{r.items.map(i => i.name).join("、")}</div>
+                {r.saleNote && <div style={{ fontSize: 11, color: "#C6A992", marginBottom: 6 }}>📝 {r.saleNote}</div>}
+                <div style={{ display: "flex", gap: 10 }}>
+                  <div style={{ flex: 1, background: "#f7f2ee", borderRadius: 8, padding: "6px 10px" }}>
+                    <div style={{ fontSize: 10, color: "#C4B1A0", fontWeight: 700 }}>總金額</div>
+                    <div style={{ fontSize: 13, fontFamily: "monospace", color: "#A59482", fontWeight: 700 }}>{ntd(r.totalRevenue||0)}</div>
                   </div>
-                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#7a5c3a", fontWeight: 700 }}>{ntd(r.netProfit)}</span>
+                  <div style={{ flex: 1, background: "#f7f2ee", borderRadius: 8, padding: "6px 10px" }}>
+                    <div style={{ fontSize: 10, color: "#C4B1A0", fontWeight: 700 }}>淨利</div>
+                    <div style={{ fontSize: 13, fontFamily: "monospace", color: "#7a5c3a", fontWeight: 700 }}>{ntd(r.netProfit||0)}</div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -2222,7 +2344,7 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
   );
 }
 
-function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSaleAdd, partners, onAddPartner, onDeleteCustomer }) {
+function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSaleAdd, partners, onAddPartner, onDeleteCustomer, deleteRecord }) {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editCustomer, setEditCustomer] = useState(null);
@@ -2353,10 +2475,18 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
         onEdit={() => { setEditCustomer(viewCustomer); setViewCustomer(null); setShowForm(true); }}
         onDelete={() => { onDelete(viewCustomer.id); setViewCustomer(null); }}
         onClose={() => setViewCustomer(null)}
+        onDeleteRecord={(id) => {
+          if (deleteRecord) deleteRecord(id);
+        }}
         onConvertToPartner={onAddPartner ? () => {
-          const p = { id: `c_${Date.now()}`, name: viewCustomer.name, level: "實習零售加盟", status: "經營", joinDate: "", area: "", birthday: "", levelHistory: [], courses: [] };
+          const newPartnerId = 'p_' + Date.now();
+          const p = { id: newPartnerId, name: viewCustomer.name, level: "實習零售加盟", status: "經營", joinDate: viewCustomer.buyDate || "", area: "", birthday: "", levelHistory: [], courses: [], formerCustomer: true, formerCustomerRecords: (salesRecords||[]).filter(r => r.customerId === viewCustomer.id).length };
           onAddPartner(p);
-          if (window.confirm(`已將「${viewCustomer.name}」轉為夥伴！是否同時刪除顧客資料？`)) { onDelete(viewCustomer.id); }
+          // 把購買記錄轉成進貨記錄
+          const custRecs = (salesRecords||[]).filter(r => r.type === "sale" && r.customerId === viewCustomer.id);
+
+          alert('✅ 已將「' + viewCustomer.name + '」轉為夥伴！');
+          onDelete(viewCustomer.id);
           setViewCustomer(null);
         } : null}
       />}
@@ -2517,7 +2647,13 @@ function App() {
 
   const addRecord = useCallback((r) => setRecords(prev => [r, ...prev]), []);
   const deleteRecord = useCallback((id) => setRecords(prev => prev.filter(r => r.id !== id)), []);
-  const addCustomer = useCallback((c) => setCustomers(prev => [c, ...prev]), []);
+  const addCustomer = (c) => {
+    setCustomers(prev => {
+      const updated = [c, ...prev];
+      try { localStorage.setItem("royal_more_customers", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
   const updateCustomer = useCallback((c) => setCustomers(prev => prev.map(x => x.id === c.id ? c : x)), []);
   const deleteCustomer = useCallback((id) => setCustomers(prev => prev.filter(c => c.id !== id)), []);
 
@@ -2528,7 +2664,7 @@ function App() {
   );
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ records, customers }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ records, customers, partners }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -2550,7 +2686,13 @@ function App() {
         } else {
           if (data.records) setRecords(prev => { const ids = new Set(prev.map(r => r.id)); return [...data.records.filter(r => !ids.has(r.id)), ...prev]; });
           if (data.customers) setCustomers(prev => { const ids = new Set(prev.map(c => c.id)); return [...data.customers.filter(c => !ids.has(c.id)), ...prev]; });
-          setImportMsg("✅ 成功匯入！");
+          if (data.partners) {
+            const updated = (() => { const ids = new Set(partners.map(p => p.id)); return [...data.partners.filter(p => !ids.has(p.id)), ...partners]; })();
+            setPartners(updated);
+            try { localStorage.setItem("royal_more_branch_partners", JSON.stringify(updated)); } catch {}
+          }
+          const counts = [data.records ? data.records.length + "筆紀錄" : "", data.customers ? data.customers.length + "位顧客" : "", data.partners ? data.partners.length + "位夥伴" : ""].filter(Boolean).join("、");
+          setImportMsg("✅ 成功匯入 " + counts + "！");
         }
       } catch { setImportMsg("❌ 檔案格式錯誤"); }
       setTimeout(() => setImportMsg(""), 3000);
@@ -2594,9 +2736,9 @@ function App() {
       {importMsg && <div style={{ background: importMsg.startsWith("✅") ? "#f0faf4" : "#fff5f4", padding: "10px 16px", textAlign: "center", fontSize: 14, color: importMsg.startsWith("✅") ? "#7a5c3a" : "#c0392b", borderBottom: "1px solid #DBC8B6" }}>{importMsg}</div>}
       <div style={{ padding: "16px 16px 80px" }}>
         {tab === 0 && <StockTab onSave={addRecord} />}
-        {tab === 1 && <CustomersTab customers={customers} onAdd={addCustomer} onUpdate={updateCustomer} onDelete={deleteCustomer} salesRecords={records} onSaleAdd={addRecord} partners={partners} onAddPartner={addPartner} />}
+        {tab === 1 && <CustomersTab customers={customers} onAdd={addCustomer} onUpdate={updateCustomer} onDelete={deleteCustomer} salesRecords={records} onSaleAdd={addRecord} partners={partners} onAddPartner={addPartner} deleteRecord={deleteRecord} />}
         
-        {tab === 2 && <BranchTab partners={partners} setPartners={setPartners} savePartners={savePartners} addCustomer={addCustomer} />}
+        {tab === 2 && <BranchTab partners={partners} setPartners={setPartners} savePartners={savePartners} addCustomer={addCustomer} allRecords={records} setAllRecords={setRecords} />}
         {tab === 3 && <HistoryTab records={records} onDelete={deleteRecord} exportData={exportData} importData={importData} />}
         {tab === 4 && <PetTab coins={totalCoins} />}
         {tab === 5 && <BackupTab records={records} customers={customers} exportData={exportData} importData={importData} />}
