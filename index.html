@@ -1069,7 +1069,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
 
       {/* 篩選：類型 */}
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        {[["all", "全部"], ["sale", "銷售"], ["stock", "進貨"], ["branch", "夥伴"]].map(([v, l]) => (
+        {[["all", "全部"], ["stock", "進貨"], ["sale", "銷售"], ["branch", "夥伴"]].map(([v, l]) => (
           <button key={v} onClick={() => setFilter(v)} style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", cursor: "pointer", background: filter === v ? "#C6A992" : "#fff", color: filter === v ? "#fff" : "#A59482", fontWeight: filter === v ? 700 : 400, fontSize: 13, boxShadow: "0 1px 6px rgba(139,90,43,0.1)" }}>{l}</button>
         ))}
       </div>
@@ -1096,35 +1096,83 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
 
       {/* 選年後顯示該年統計 */}
       {selectedYear !== "all" && (() => {
-        const yr = allRecords.filter(r => getYearMonth(r).year === Number(selectedYear));
+        const yr = allRecords.filter(r => {
+          if (getYearMonth(r).year !== Number(selectedYear)) return false;
+          if (filter === "all") return true;
+          if (filter === "sale") return r.type === "sale";
+          if (filter === "stock") return r.type === "stock";
+          if (filter === "branch") return r.type === "branch";
+          return true;
+        });
         const yRev = yr.filter(r => r.type === "sale").reduce((s, r) => s + r.totalRevenue, 0);
         const yProfit = yr.filter(r => r.type === "sale").reduce((s, r) => s + r.netProfit, 0);
         const yStock = yr.filter(r => r.type === "stock").reduce((s, r) => s + r.totalCost, 0);
-        const yBranch = yr.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
+        const yBranch = yr.filter(r => r.type === "branch").reduce((s, r) => s + (r.totalRevenue||r.totalStock||0), 0);
+        const yBranchNet = yr.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
         const yMargin = yRev > 0 ? (yProfit / yRev * 100).toFixed(1) : "—";
         return (
           <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16, marginBottom: 14 }}>
-            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>📅 {selectedYear}年 年度統計</div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年度營業額</div>
-                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yRev)}</div>
-              </div>
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年度銷售淨利</div>
-                <div style={{ color: yProfit >= 0 ? "#f5e6de" : "#ff8070", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yProfit)}</div>
-              </div>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>
+              📅 {selectedYear}年度{filter==="all"?"統計報表":filter==="sale"?"銷售統計":filter==="stock"?"進貨統計":"分店統計"}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年度進貨統計</div>
-                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yStock)}</div>
+            {filter === "all" && <>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年營業額</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yRev)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年淨利</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yProfit + yBranchNet)}</div>
+                </div>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>淨利</div>
-                <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranch)}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yStock)}</div>
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yr.filter(r=>r.type==="sale").reduce((s,r)=>s+(r.shipping||0),0))}</div>
+                </div>
               </div>
-            </div>
+            </>}
+            {filter === "sale" && <>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年營業額</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yRev)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年銷售淨利</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yProfit)}</div>
+                </div>
+              </div>
+            </>}
+            {filter === "branch" && <>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年營業額</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranch)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>年分店淨利</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yBranchNet)}</div>
+                </div>
+              </div>
+            </>}
+            {filter === "stock" && <>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(yStock)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨筆數</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{yr.length}筆</div>
+                </div>
+              </div>
+            </>}
           </Card>
         );
       })()}
@@ -1132,43 +1180,103 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
       {selectedYear !== "all" && selectedMonth !== "all" && (() => {
         const mRecords = allRecords.filter(r => {
           const ym = getYearMonth(r);
-          return ym.year === Number(selectedYear) && ym.month === Number(selectedMonth);
+          if (ym.year !== Number(selectedYear) || ym.month !== Number(selectedMonth)) return false;
+          if (filter === "sale") return r.type === "sale";
+          if (filter === "stock") return r.type === "stock";
+          if (filter === "branch") return r.type === "branch";
+          return true;
         });
         const mRev = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + r.totalRevenue, 0);
         const mProfit = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + r.netProfit, 0);
         const mStock = mRecords.filter(r => r.type === "stock").reduce((s, r) => s + r.totalCost, 0);
-        const mBranch = mRecords.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
+        const mBranchRevenue = mRecords.filter(r => r.type === "branch").reduce((s, r) => s + (r.totalRevenue||r.totalStock||0), 0);
+        const mBranch = mBranchRevenue;
+        const mBranchNet = mRecords.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
         const mShip = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + (r.shipping || 0), 0);
         if (mRecords.length === 0) return null;
         return (
           <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16, marginBottom: 14 }}>
-            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>📅 {selectedYear}年 {selectedMonth}月</div>
-            <div style={{ display: "flex", gap: 8, marginBottom: mStock > 0 || mBranch > 0 ? 8 : 0 }}>
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
-                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mRev)}</div>
-              </div>
-              <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月銷售淨利</div>
-                <div style={{ color: mProfit >= 0 ? "#f5e6de" : "#ff8070", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mProfit)}</div>
-              </div>
+            <div style={{ color: "#DBC8B6", fontSize: 11, fontWeight: 700, marginBottom: 10 }}>
+              📅 {selectedYear}年{selectedMonth}月{filter==="all"?"統計報表":filter==="sale"?"銷售統計":filter==="stock"?"進貨統計":"分店統計"}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>成本</div>
-                <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
-              </div>
-              <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>淨利</div>
-                <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranch)}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 8 }}>
-                <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出總計</div>
-                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{mShip > 0 ? `-${ntd(mShip)}` : ntd(0)}</div>
+            {filter === "all" && <>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mRev)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月淨利</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mProfit + mBranchNet)}</div>
                 </div>
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mShip)}</div>
+                </div>
+              </div>
+            </>}
+            {filter === "sale" && <>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mRev)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月銷售淨利</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mProfit)}</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mShip)}</div>
+                </div>
+              </div>
+            </>}
+            {filter === "branch" && <>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranchRevenue)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月分店淨利</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranchNet)}</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mShip)}</div>
+                </div>
+              </div>
+            </>}
+            {filter === "stock" && <>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨筆數</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{mRecords.length}筆</div>
+                </div>
+              </div>
+            </>}
           </Card>
         );
       })()}
@@ -1195,7 +1303,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
                 <div style={{ fontSize: 11, color: "#C4B1A0", marginTop: 2 }}>{isCollapsed ? "▶ 展開" : "▼ 收合"}</div>
               </div>
             </div>
-            {!isCollapsed && monthRecords.map(r => (
+            {!isCollapsed && [...monthRecords].sort((a,b) => new Date(b.date.replace(/\//g,"-")) - new Date(a.date.replace(/\//g,"-"))).map(r => (
               <RecordCard key={r.id} r={r} expanded={expanded} setExpanded={setExpanded} setDeleting={setDeleting} />
             ))}
             <div style={{ height: 1, background: "#DBC8B6", margin: "4px 0 16px" }} />
@@ -1268,7 +1376,7 @@ const BRANCH_PRODUCTS_LIST = [
 const BRANCH_COSTS = [700,430,440,700,440,440,440,620,500,740,620,320,440,620,440,360,700,620,500,320,740,440,320,120,75,12,15];
 const BRANCH_PRICES = {
   "一級督導輔導": [790,470,510,790,510,510,510,690,570,830,690,365,510,690,510,400,1440,690,570,365,790,510,365,133,89,14,17],
-  "二級督導輔導": [880,520,580,880,580,580,580,770,640,920,770,410,580,770,580,450,880,770,580,410,880,580,410,146,103,17,20],
+  "二級督導輔導": [880,520,580,880,580,580,580,770,640,920,770,410,580,770,580,450,880,770,640,410,920,580,410,146,103,17,20],
   "三級督導輔導": [955,560,635,955,635,635,635,830,695,1040,830,440,635,830,635,485,1740,830,695,440,1040,635,440,158,113,20,24],
   "三級零售加盟": [990,580,660,990,660,660,660,860,720,1080,860,455,660,860,660,500,1800,860,720,455,1080,660,455,164,117,21,25],
   "實習零售加盟": [1160,660,780,1160,780,780,780,990,840,1260,990,530,780,990,780,550,2000,990,840,530,1260,780,530,190,145,24,30],
@@ -1313,6 +1421,11 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
             <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: levelColors[vp.level] || "#e3d3b4", color: textColorForLevel(vp.level) }}>{vp.level}</span>
             {vp.status && <span style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: vp.status==="經營"?"#e8ddd0":vp.status==="退出"?"#d8cec4":"#ede5db", color: vp.status==="經營"?"#7a5c3a":vp.status==="退出"?"#9a8070":"#a08060" }}>{vp.status}</span>}
           </div>
+          {vp.formerCustomer && (
+            <div style={{ fontSize: 12, color: "#C6A992", background: "#faf6f2", borderRadius: 8, padding: "6px 12px", marginBottom: 8, marginTop: 8 }}>
+              🛒 此夥伴先前為顧客，有 {vp.formerCustomerRecords || 0} 筆購買記錄
+            </div>
+          )}
           <div style={{ fontSize: 13, color: "#A59482", lineHeight: 2, marginTop: 8 }}>
             {vp.joinDate && <div>📅 加盟日期：{vp.joinDate}</div>}
             {vp.area && <div>📍 居住地：{vp.area}</div>}
@@ -1387,12 +1500,15 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
           const yr = now.getFullYear();
           const yRecs = pr.filter(r => new Date(r.date.replace(/\//g,'-')).getFullYear() === yr);
           const yTotal = yRecs.reduce((s,r) => s + (r.totalRevenue || r.totalStock || 0), 0);
-          const isL3 = ['三級督導輔導','三級零售加盟'].includes(vp.level);
-          const isL2 = vp.level === '二級督導輔導';
-          const isL1 = vp.level === '一級督導輔導';
-          const award = (isL3 && yTotal >= 100000) ? 666 : (isL2 && yTotal >= 300000) ? 3000 : (isL1 && yTotal >= 900000) ? 5000 : 0;
+          const yearLvls = [...new Set([vp.level, ...(vp.levelHistory||[]).filter(h => h.date && new Date(h.date.replace(/\//g,'-')).getFullYear()===yr).map(h=>h.to||h.level||"")].filter(Boolean))];
+          const awards = [
+            ...(yearLvls.includes('一級督導輔導') && yTotal >= 900000 ? [{amt:5000,label:'一級'}] : []),
+            ...(yearLvls.includes('二級督導輔導') && yTotal >= 300000 ? [{amt:3000,label:'二級'}] : []),
+            ...(yearLvls.some(l=>['三級督導輔導','三級零售加盟'].includes(l)) && yTotal >= 100000 ? [{amt:666,label:'三級'}] : []),
+          ];
+          const award = awards.length > 0 ? awards[0].amt : 0;
           const hasUp = (vp.levelHistory||[]).some(h => h.date && new Date(h.date.replace(/\//g,'-')).getFullYear() === yr);
-          if (!award && !hasUp) return null;
+          if (awards.length === 0 && !hasUp) return null;
           return (
             <Card>
               <Label>🏆 金more獎年度獎項</Label>
@@ -1458,6 +1574,28 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
             ))}
           </Card>
         )}
+        {vp.formerCustomer && (() => {
+          try {
+            const mainAll = JSON.parse(localStorage.getItem("royal_more_records")||"[]");
+            const cRecs = mainAll.filter(r => r.type === "sale" && (r.customerId === vp.id || r.customer === vp.name));
+            if (cRecs.length === 0) return null;
+            return (
+              <Card>
+                <Label>顧客購買記錄（{cRecs.length}筆）</Label>
+                {cRecs.map(r => (
+                  <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid #ede0d4" }}>
+                    <div style={{ fontSize: 12, color: "#C4B1A0", marginBottom: 4 }}>{r.date}</div>
+                    <div style={{ fontSize: 13, color: "#A59482" }}>{(r.items||[]).map(it=>it.name).join("、")}</div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                      <div style={{ flex:1, background:"#f7f2ee", borderRadius:8, padding:"5px 8px" }}><div style={{ fontSize:10, color:"#C4B1A0" }}>總金額</div><div style={{ fontSize:12, fontFamily:"monospace", color:"#A59482", fontWeight:700 }}>{ntd(r.totalRevenue||0)}</div></div>
+                      <div style={{ flex:1, background:"#f7f2ee", borderRadius:8, padding:"5px 8px" }}><div style={{ fontSize:10, color:"#C4B1A0" }}>淨利</div><div style={{ fontSize:12, fontFamily:"monospace", color:"#7a5c3a", fontWeight:700 }}>{ntd(r.netProfit||0)}</div></div>
+                    </div>
+                  </div>
+                ))}
+              </Card>
+            );
+          } catch { return null; }
+        })()}
       </div>
     </div>
   );
@@ -1478,7 +1616,7 @@ function PartnerForm({ editPartner, partners, setPartners, savePartners, setShow
   const COURSE_OPTIONS = ["絕對成交","執行力","領導力","引爆生命力","彩妝課程","其他"];
   const handlePartnerSave = () => {
     if (!pName.trim()) return;
-    const p = { id: editPartner?.id || nowId(), name: pName.trim(), level: pLevel, status: pStatus, joinDate: pJoinDate, area: pArea, birthday: pBirthday, levelHistory: pLevelHistory, courses: pCourses, courseOther: pCourseOther, careNotes: pCareNotes, careLog: editPartner?.careLog || [] };
+    const p = { id: editPartner?.id || nowId(), name: pName.trim(), level: pLevel, status: pStatus, joinDate: pJoinDate, area: pArea, birthday: pBirthday, levelHistory: pLevelHistory, courses: pCourses, courseOther: pCourseOther, careNotes: pCareNotes, careLog: editPartner?.careLog || [], formerCustomer: editPartner?.formerCustomer, formerCustomerRecords: editPartner?.formerCustomerRecords, formerCustomerId: editPartner?.formerCustomerId };
     const updated = editPartner ? partners.map(x => x.id === editPartner.id ? p : x) : [p, ...partners];
     setPartners(updated); savePartners(updated); setShowPartnerForm(false);
   };
@@ -1605,7 +1743,10 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
     try { const s = localStorage.getItem(LS_BRANCH); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [partnerSearch, setPartnerSearch] = useState("");
-  const [careModal, setCareModal] = useState(null); // { partnerId, partnerName }
+  const [careModal, setCareModal] = useState(null);
+  const [dismissedQuota, setDismissedQuota] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("royal_more_branch_quota_dismiss")||"{}"); } catch { return {}; }
+  }); // { partnerId, partnerName }
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const [editPartner, setEditPartner] = useState(null);
   const [viewPartner, setViewPartner] = useState(null);
@@ -1701,8 +1842,9 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
   }).reduce((s, r) => s + r.netProfit, 0);
 
   const branchTop5 = (() => {
+    const now = new Date(); const cy = now.getFullYear(); const cm = now.getMonth();
     const t = {};
-    records.forEach(r => {
+    records.filter(r => { const d = new Date(r.date.replace(/\//g,"-")); return d.getFullYear()===cy && d.getMonth()===cm; }).forEach(r => {
       (r.items || []).forEach(i => { if (Number(i.qty) > 0) t[i.product] = (t[i.product] || 0) + Number(i.qty); });
     });
     return Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -1966,8 +2108,14 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
                     }).reduce((s, r) => s + (r.totalStock || r.totalRevenue || 0), 0);
                     const diff = quota - monthTotal;
                     if (diff <= 0) return null;
+                    const nowYM = (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`; })();
+                    if (dismissedQuota[p.id] === nowYM) return (
+                      <span onClick={e => { e.stopPropagation(); const upd = {...dismissedQuota}; delete upd[p.id]; setDismissedQuota(upd); try { localStorage.setItem("royal_more_branch_quota_dismiss", JSON.stringify(upd)); } catch {} }}
+                        style={{ fontSize: 10, color: "#C4B1A0", cursor: "pointer", textDecoration: "underline" }}>恢復提醒</span>
+                    );
                     return (
-                      <div style={{ fontSize: 11, color: "#c0392b", background: "#fdf0ee", borderRadius: 8, padding: "4px 10px", marginTop: 4, marginBottom: 2, fontWeight: 600, display: "inline-block" }}>
+                      <div onClick={e => { e.stopPropagation(); const upd = {...dismissedQuota, [p.id]: nowYM}; setDismissedQuota(upd); try { localStorage.setItem("royal_more_branch_quota_dismiss", JSON.stringify(upd)); } catch {} }}
+                        style={{ fontSize: 11, color: "#c0392b", background: "#fdf0ee", borderRadius: 8, padding: "4px 10px", marginTop: 4, marginBottom: 2, fontWeight: 600, display: "inline-block", cursor: "pointer" }}>
                         🛎️ 每月進貨還差 ${diff.toLocaleString()} 達標
                       </div>
                     );
@@ -1977,14 +2125,17 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
                     const yr = new Date().getFullYear();
                     const yRecs = records.filter(r => (r.partnerId === p.id || r.partner === p.name) && new Date(r.date.replace(/\//g,'-')).getFullYear() === yr);
                     const yTotal = yRecs.reduce((s,r) => s + (r.totalRevenue || r.totalStock || 0), 0);
-                    const isL3 = ['三級督導輔導','三級零售加盟'].includes(p.level);
-                    const isL2 = p.level === '二級督導輔導';
-                    const isL1 = p.level === '一級督導輔導';
-                    const award = (isL3 && yTotal >= 100000) ? 666 : (isL2 && yTotal >= 300000) ? 3000 : (isL1 && yTotal >= 900000) ? 5000 : 0;
+                    const yearLevels = [...new Set([p.level, ...(p.levelHistory||[]).filter(h => h.date && new Date(h.date.replace(/\//g,'-')).getFullYear()===yr).map(h=>h.to||h.level||"")].filter(Boolean))];
+                    const awards = [
+                      ...(yearLevels.includes('一級督導輔導') && yTotal >= 900000 ? [{amt:5000,label:'一級'}] : []),
+                      ...(yearLevels.includes('二級督導輔導') && yTotal >= 300000 ? [{amt:3000,label:'二級'}] : []),
+                      ...(yearLevels.some(l=>['三級督導輔導','三級零售加盟'].includes(l)) && yTotal >= 100000 ? [{amt:666,label:'三級'}] : []),
+                    ];
+                    const award = awards.length > 0 ? awards[0].amt : 0;
                     const hasUp = (p.levelHistory||[]).some(h => h.date && new Date(h.date.replace(/\//g,'-')).getFullYear() === yr);
-                    if (!award && !hasUp) return null;
+                    if (awards.length === 0 && !hasUp) return null;
                     return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, marginBottom: 2 }}>
-                      {award > 0 && <span style={{ fontSize: 11, color: '#7a5c3a', background: '#fff8e1', borderRadius: 8, padding: '2px 7px', fontWeight: 700 }}>🏆{yr}金more獎 年度業績達標${award}</span>}
+                      {awards.map((a,i) => <span key={i} style={{ fontSize: 11, color: '#7a5c3a', background: '#fff8e1', borderRadius: 8, padding: '2px 7px', fontWeight: 700 }}>🏆{yr}金more獎 {a.label}達標${a.amt}</span>)}
                       {hasUp && <span style={{ fontSize: 11, color: '#7a5c3a', background: '#fff8e1', borderRadius: 8, padding: '2px 7px', fontWeight: 700 }}>🎖️{yr}金more升級獎</span>}
                     </div>;
                   })()}
@@ -2036,30 +2187,10 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
       {viewPartner && <PartnerDetail viewPartner={viewPartner} partners={partners} records={records} setViewPartner={setViewPartner} setEditPartner={setEditPartner} setShowPartnerForm={setShowPartnerForm} ntd={ntd} levelColors={levelColors} setRecords={setRecords} setAllRecords={setAllRecords}
           onConvertToCustomer={() => {
             const vp = partners.find(p => p.id === viewPartner.id) || viewPartner;
-            const newCustId = 'c_' + Date.now();
+            const newCustId = vp.formerCustomerId || ('c_' + Date.now());
             const partnerRecs = records.filter(r => r.partnerId === vp.id || r.partner === vp.name);
-            const saleRecs = partnerRecs.map(r => ({
-              id: 'cs_' + r.id, date: r.date, type: 'sale',
-              customer: vp.name, customerId: newCustId,
-              note: '（由夥伴進貨轉入）',
-              items: (r.items||[]).filter(it => it.product && Number(it.qty) > 0).map(it => ({
-                name: it.product, qty: it.qty, priceLabel: 'VIP價',
-                unitPrice: Number(it.price)||0, unitCost: Number(it.cost)||0
-              })),
-              totalRevenue: r.totalRevenue||0, totalCost: r.totalStock||0,
-              shipping: r.shipping||0, netProfit: r.netProfit||0, margin: '0'
-            }));
             const cWithMark = { id: newCustId, name: vp.name, phone: '', platform: '', buyDate: vp.joinDate || '', buyCount: '首次購買', tags: [], note: '', purchases: [], consults: [], usage: {}, careDate: '', formerPartner: true, formerPartnerRecords: partnerRecs.length };
             if (addCustomer) addCustomer(cWithMark);
-            // 直接寫入 localStorage 並更新 allRecords state
-            if (saleRecs.length > 0) {
-              try {
-                const existing = JSON.parse(localStorage.getItem('royal_more_records')||'[]');
-                const upd = [...existing, ...saleRecs];
-                localStorage.setItem('royal_more_records', JSON.stringify(upd));
-                if (setAllRecords) setAllRecords(upd);
-              } catch(e) { console.error(e); }
-            }
             const updatedP = partners.filter(p => p.id !== vp.id);
             setPartners(updatedP); savePartners(updatedP);
             setViewPartner(null);
@@ -2087,6 +2218,24 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
   );
 }
 
+
+function CustomerCareModal({ customer, onSave, onCancel }) {
+  const [note, setNote] = useState("");
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 400, display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%", boxSizing: "border-box" }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: "#A59482", marginBottom: 4 }}>✅ 記錄關心</div>
+        <div style={{ fontSize: 13, color: "#C4B1A0", marginBottom: 16 }}>{customer.name}</div>
+        <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="輸入關心內容（可選填）..." rows={3}
+          style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #DBC8B6", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontFamily: "inherit", resize: "none", outline: "none" }} />
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+          <button onClick={onCancel} style={{ flex: 1, padding: 12, borderRadius: 12, border: "1.5px solid #DBC8B6", background: "#fff", color: "#A59482", cursor: "pointer", fontSize: 14 }}>取消</button>
+          <button onClick={() => onSave(note)} style={{ flex: 1, padding: 12, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>儲存並清除提醒</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function CustomerForm({ customer, onSave, onCancel }) {
   const [name, setName] = useState(customer?.name || "");
@@ -2122,7 +2271,7 @@ function CustomerForm({ customer, onSave, onCancel }) {
     if (idx !== i) return p;
     return { ...p, qtys: { ...(p.qtys || {}), [prod]: Number(qty) || 1 } };
   }));
-  const handleSave = () => { if (!name.trim()) return alert("請填入顧客名稱"); onSave({ id: customer?.id || nowId(), name: name.trim(), platform, contact, contactMethod, contactNote, buyCount, buyDate, careDate, careNote, tags, purchases, usage, receivedDate }); };
+  const handleSave = () => { if (!name.trim()) return alert("請填入顧客名稱"); onSave({ id: customer?.id || nowId(), name: name.trim(), platform, contact, contactMethod, contactNote, buyCount, buyDate, careDate, careNote, tags, purchases, usage, receivedDate, consults, formerPartner: customer?.formerPartner, formerPartnerRecords: customer?.formerPartnerRecords }); };
   return (
     <div style={{ position: "fixed", inset: 0, background: "#ede0d4", zIndex: 200, overflowY: "auto" }}>
       <div style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: "44px 20px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12 }}>
@@ -2222,7 +2371,7 @@ const TAG_COLORS = {
 const getTagColor = (t) => TAG_COLORS[t] || { bg: "#e2d8d0", color: "#6a5040" };
 
 function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onConvertToPartner, onDeleteRecord }) {
-  const custSales = salesRecords.filter(r => r.type === "sale" && r.customerId === customer.id);
+  const custSales = salesRecords.filter(r => r.type === "sale" && (r.customerId === customer.id || r.customer === customer.name));
   const totalSpent = custSales.reduce((s, r) => s + r.totalRevenue, 0);
   const totalProfit = custSales.reduce((s, r) => s + r.netProfit, 0);
   return (
@@ -2339,6 +2488,28 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
             ))}
           </Card>
         )}
+        {customer.formerPartner && (() => {
+          try {
+            const bAll = JSON.parse(localStorage.getItem("royal_more_branch")||"[]");
+            const pRecs = bAll.filter(r => r.partnerId === customer.id || r.partner === customer.name);
+            if (pRecs.length === 0) return null;
+            return (
+              <Card>
+                <Label>夥伴進貨記錄（{pRecs.length}筆）</Label>
+                {pRecs.map(r => (
+                  <div key={r.id} style={{ padding: "8px 0", borderBottom: "1px solid #ede0d4" }}>
+                    <div style={{ fontSize: 12, color: "#C4B1A0", marginBottom: 4 }}>{r.date}</div>
+                    <div style={{ fontSize: 13, color: "#A59482" }}>{(r.items||[]).filter(it=>it.product&&Number(it.qty)>0).map(it=>`${it.product}×${it.qty}`).join("、")}</div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                      <div style={{ flex:1, background:"#f7f2ee", borderRadius:8, padding:"5px 8px" }}><div style={{ fontSize:10, color:"#C4B1A0" }}>總金額</div><div style={{ fontSize:12, fontFamily:"monospace", color:"#A59482", fontWeight:700 }}>{ntd(r.totalRevenue||0)}</div></div>
+                      <div style={{ flex:1, background:"#f7f2ee", borderRadius:8, padding:"5px 8px" }}><div style={{ fontSize:10, color:"#C4B1A0" }}>淨利</div><div style={{ fontSize:12, fontFamily:"monospace", color:"#7a5c3a", fontWeight:700 }}>{ntd(r.netProfit||0)}</div></div>
+                    </div>
+                  </div>
+                ))}
+              </Card>
+            );
+          } catch { return null; }
+        })()}
       </div>
     </div>
   );
@@ -2352,6 +2523,7 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [saleCustomer, setSaleCustomer] = useState(null);
   const [filterTag, setFilterTag] = useState("");
+  const [custCareModal, setCustCareModal] = useState(null);
 
   // 計算購買日期距今天數
   const getDaysSince = (dateStr) => {
@@ -2381,8 +2553,8 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
     // 下次關心日期到期提醒（優先）
     if (c.careDate) {
       const daysUntil = getDaysUntil(c.careDate);
-      if (daysUntil !== null && daysUntil <= 0) return { label: "關心日期已到", color: "#c0392b", bg: "#fff0ee", days: 0, isCare: true };
-      if (daysUntil !== null && daysUntil === 1) return { label: "明天關心", color: "#e67e22", bg: "#fff3e0", days: 1, isCare: true };
+      if (daysUntil !== null && daysUntil <= 0) return { label: "關心日期已到", color: "#c0392b", bg: "#fff0ee", days: 0, isCareDate: true };
+      if (daysUntil !== null && daysUntil === 1) return { label: "明天關心", color: "#e67e22", bg: "#fff3e0", days: 1, isCareDate: true };
       return null;
     }
     // 收貨/購買後第3/7天提醒
@@ -2471,6 +2643,17 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
     <div>
       {showSaleForm && <SaleQuickModal customer={saleCustomer} customers={customers} onSave={(rec) => { onSaleAdd(rec); setShowSaleForm(false); }} onCancel={() => setShowSaleForm(false)} />}
       {showForm && <CustomerForm customer={editCustomer} onSave={handleSave} onCancel={() => { setShowForm(false); setEditCustomer(null); }} />}
+      {custCareModal && (
+        <CustomerCareModal customer={custCareModal} onCancel={() => setCustCareModal(null)}
+          onSave={(note) => {
+            const n = new Date(); const today = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
+            const consult = note.trim() ? { date: today, note } : null;
+            const updated = { ...custCareModal, careDate: "", receivedDate: "", consults: consult ? [consult, ...(custCareModal.consults||[])] : (custCareModal.consults||[]) };
+            onUpdate(updated);
+            setCustCareModal(null);
+          }}
+        />
+      )}
       {viewCustomer && <CustomerDetail customer={viewCustomer} salesRecords={salesRecords}
         onEdit={() => { setEditCustomer(viewCustomer); setViewCustomer(null); setShowForm(true); }}
         onDelete={() => { onDelete(viewCustomer.id); setViewCustomer(null); }}
@@ -2480,12 +2663,9 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
         }}
         onConvertToPartner={onAddPartner ? () => {
           const newPartnerId = 'p_' + Date.now();
-          const p = { id: newPartnerId, name: viewCustomer.name, level: "實習零售加盟", status: "經營", joinDate: viewCustomer.buyDate || "", area: "", birthday: "", levelHistory: [], courses: [], formerCustomer: true, formerCustomerRecords: (salesRecords||[]).filter(r => r.customerId === viewCustomer.id).length };
+          const p = { id: newPartnerId, name: viewCustomer.name, level: "實習零售加盟", status: "經營", joinDate: viewCustomer.buyDate || "", area: "", birthday: "", levelHistory: [], courses: [], formerCustomer: true, formerCustomerRecords: (salesRecords||[]).filter(r => r.customerId === viewCustomer.id).length, formerCustomerId: viewCustomer.id };
           onAddPartner(p);
-          // 把購買記錄轉成進貨記錄
-          const custRecs = (salesRecords||[]).filter(r => r.type === "sale" && r.customerId === viewCustomer.id);
-
-          alert('✅ 已將「' + viewCustomer.name + '」轉為夥伴！');
+alert('✅ 已將「' + viewCustomer.name + '」轉為夥伴！');
           onDelete(viewCustomer.id);
           setViewCustomer(null);
         } : null}
@@ -2524,7 +2704,8 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
         const saleRecs = (salesRecords||[]).filter(r => r.type === "sale");
         const thisMonthNet = saleRecs.filter(r => { const d = new Date(r.date.replace(/\//g,"-")); return d.getFullYear()===cy && d.getMonth()===cm; }).reduce((s,r)=>s+r.netProfit,0);
         const lastMonthNet = saleRecs.filter(r => { const d = new Date(r.date.replace(/\//g,"-")); return d.getFullYear()===ly && d.getMonth()===lm; }).reduce((s,r)=>s+r.netProfit,0);
-        const tally = {}; saleRecs.forEach(r => r.items.forEach(i => { tally[i.name]=(tally[i.name]||0)+(Number(i.qty)||0); }));
+        const thisMonthRecs = saleRecs.filter(r => { const d = new Date(r.date.replace(/\//g,"-")); return d.getFullYear()===cy && d.getMonth()===cm; });
+        const tally = {}; thisMonthRecs.forEach(r => r.items.forEach(i => { tally[i.name]=(tally[i.name]||0)+(Number(i.qty)||0); }));
         const top5 = Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,5);
         return (<>
           <Card style={{ background: "linear-gradient(135deg,#7a6352,#9A6852)", padding: "14px 16px", marginBottom: 4 }}>
@@ -2590,14 +2771,14 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
       </div>
       {filtered.length === 0 && <div style={{ textAlign: "center", color: "#C4B1A0", padding: "40px 0", fontSize: 14 }}><div style={{ marginBottom: 12 }}>🐻 </div>{customers.length === 0 ? "還沒有顧客，點右上角「＋新增」" : "找不到符合的顧客"}</div>}
       {filtered.map(c => {
-        const custSales = salesRecords.filter(r => r.type === "sale" && r.customerId === c.id);
+        const custSales = salesRecords.filter(r => r.type === "sale" && (r.customerId === c.id || r.customer === c.name));
         const followUp = getNeedFollowUp(c);
-        const isUrgent = followUp && (followUp.days === 3 || followUp.days === 7);
+        const isUrgent = followUp && (followUp.days === 0 || followUp.days === 1 || followUp.days === 3 || followUp.days >= 7 || followUp.isCareDate);
         return (
           <Card key={c.id} style={{ padding: 0, overflow: "hidden", border: isUrgent ? `2px solid ${followUp.color}` : "none" }}>
             {isUrgent && (
-              <div style={{ background: followUp.bg, padding: "6px 16px", display: "flex", alignItems: "center", gap: 6, borderBottom: `1px solid ${followUp.color}30` }}>
-                <span style={{ fontSize: 14 }}>{followUp.days === 7 ? "🚨" : "⏰"}</span>
+              <div onClick={e => { e.stopPropagation(); setCustCareModal(c); }} style={{ background: followUp.bg, padding: "6px 16px", display: "flex", alignItems: "center", gap: 6, cursor: "pointer", borderBottom: `1px solid ${followUp.color}30` }}>
+                <span style={{ fontSize: 14 }}>{followUp.days === 7 ? "🚨" : followUp.days === 0 ? "📌" : "⏰"}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: followUp.color }}>{followUp.label}｜記得關心這位顧客！</span>
               </div>
             )}
@@ -2654,7 +2835,13 @@ function App() {
       return updated;
     });
   };
-  const updateCustomer = useCallback((c) => setCustomers(prev => prev.map(x => x.id === c.id ? c : x)), []);
+  const updateCustomer = (c) => {
+    setCustomers(prev => {
+      const updated = prev.map(x => x.id === c.id ? c : x);
+      try { localStorage.setItem("royal_more_customers", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
   const deleteCustomer = useCallback((id) => setCustomers(prev => prev.filter(c => c.id !== id)), []);
 
   // 計算累計硬幣：進貨 ÷100 + 銷售淨利 ÷10
