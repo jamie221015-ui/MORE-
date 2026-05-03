@@ -824,7 +824,15 @@ function StockTab({ onSave }) {
             <button onClick={() => removeItem(item.name)} style={{ border: "none", background: "none", color: "#c0392b", fontSize: 18, cursor: "pointer", padding: 0 }}>✕</button>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <div style={{ flex: 1 }}><Label>數量（件）</Label><NumInput value={item.qty} onChange={v => updateQty(item.name, v)} /></div>
+            <div style={{ flex: 1 }}>
+              <Label>數量（件）</Label>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <button onClick={() => updateQty(item.name, Math.max(0, Number(item.qty)-1))} style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "#ede0d4", color: "#A59482", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>−</button>
+                <input type="number" min="0" value={item.qty} onChange={e => updateQty(item.name, Math.max(0, Number(e.target.value)||0))}
+                  style={{ width: 40, textAlign: "center", fontWeight: 700, color: "#5a4030", border: "1.5px solid #DBC8B6", borderRadius: 6, padding: "2px 0", fontSize: 14 }} />
+                <button onClick={() => updateQty(item.name, Number(item.qty)+1)} style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "#C6A992", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>＋</button>
+              </div>
+            </div>
             <div style={{ flex: 2, background: "#f7f2ee", borderRadius: 8, padding: "8px 12px" }}>
               <div style={{ fontSize: 11, color: "#A59482" }}>小計</div>
               <div style={{ fontSize: 17, fontFamily: "monospace", fontWeight: 700, color: "#A59482" }}>{ntd(item.cost * (Number(item.qty) || 0))}</div>
@@ -833,19 +841,34 @@ function StockTab({ onSave }) {
         </Card>
       ))}
       {items.length > 0 && (
+        <Card><Label>進貨日期</Label><DateInput value={stockDate} onChange={setStockDate} /></Card>
+      )}
+      {items.length > 0 && (
         <>
           <Card><Label>其他費用</Label><NumInput value={otherCost} onChange={setOtherCost} placeholder="選填" /></Card>
-          <Card><Label>進貨日期</Label><DateInput value={stockDate} onChange={setStockDate} /></Card>
           <Card><Label>備註</Label><TextInput value={stockNote} onChange={setStockNote} placeholder="自行輸入" /></Card>
-          <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 18 }}>
-            <div style={{ color: "#DBC8B6", fontSize: 12, fontWeight: 700, marginBottom: 12 }}>📦 總金額</div>
-            <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 10, padding: 12, marginBottom: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}><span style={{ color: "#DBC8B6", fontSize: 13 }}>進貨商品總計</span><span style={{ color: "#fff", fontFamily: "monospace", fontSize: 13 }}>{ntd(totalStock)}</span></div>
-              {other > 0 && <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "#DBC8B6", fontSize: 13 }}>其他費用</span><span style={{ color: "#fff", fontFamily: "monospace", fontSize: 13 }}>{ntd(other)}</span></div>}
+          <Card style={{ background: "#f5ede4", padding: "18px 16px", borderRadius: 16, boxShadow: "0 2px 8px rgba(160,110,70,0.08)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#9a7050", letterSpacing: 1, marginBottom: 14, textTransform: "uppercase" }}>總金額</div>
+            <div style={{ background: "rgba(0,0,0,0.04)", borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ color: "#b08060", fontSize: 13 }}>進貨商品總計</span>
+                <span style={{ color: "#7a4f2a", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(totalStock)}</span>
+              </div>
+              {other > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 6, borderTop: "1px solid rgba(0,0,0,0.08)" }}>
+                  <span style={{ color: "#b08060", fontSize: 13 }}>其他費用</span>
+                  <span style={{ color: "#7a4f2a", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(other)}</span>
+                </div>
+              )}
             </div>
-
-            <button onClick={handleSave} style={{ width: "100%", padding: 14, borderRadius: 12, border: "2px solid rgba(201,168,128,0.5)", background: "rgba(255,255,255,0.12)", color: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700 }}>💾 儲存這筆進貨</button>
+            {other > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "rgba(0,0,0,0.06)", borderRadius: 10 }}>
+                <span style={{ color: "#9a7050", fontSize: 13, fontWeight: 700 }}>合計</span>
+                <span style={{ color: "#5a3010", fontFamily: "monospace", fontSize: 17, fontWeight: 700 }}>{ntd(totalStock + other)}</span>
+              </div>
+            )}
           </Card>
+          <button onClick={handleSave} style={{ width: "100%", padding: 14, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#A59482,#C6A992)", color: "#fff", cursor: "pointer", fontSize: 15, fontWeight: 700, marginTop: 8 }}>💾 儲存這筆進貨</button>
         </>
       )}
       {items.length === 0 && <div style={{ textAlign: "center", color: "#C4B1A0", padding: "40px 0", fontSize: 14 }}>☝️ 點上方「選擇進貨商品」開始記錄</div>}
@@ -898,7 +921,7 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               {isBranch ? ntd(r.netProfit) : isSale ? ntd(r.netProfit) : ntd(r.totalCost)}
             </div>
             <div style={{ fontSize: 11, color: "#C4B1A0" }}>
-              {isSale ? "總金額 / 淨利" : isBranch ? "總金額 / 淨利" : "營業額 / 成本 / 淨利"}
+              {isSale ? "總金額 / 淨利" : isBranch ? "總金額 / 淨利" : ""}
             </div>
           </div>
         </div>
@@ -910,13 +933,13 @@ function RecordCard({ r, expanded, setExpanded, setDeleting }) {
               {r.items.filter(i => Number(i.qty) > 0).map((i, idx) => (
                 <div key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: "#5a4030" }}>{i.product} × {i.qty}</span>
-                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#7a5c3a" }}>+{ntd((Number(i.price) - Number(i.cost)) * Number(i.qty))}</span>
+                  <span style={{ fontSize: 13, fontFamily: "monospace", color: "#A59482" }}>{ntd(Number(i.price) * Number(i.qty))}</span>
                 </div>
               ))}
-              {r.shipping > 0 && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}><span style={{ fontSize: 13, color: "#5a4030" }}>運費</span><span style={{ fontSize: 13, color: "#c0392b" }}>-{ntd(r.shipping)}</span></div>}
+              {r.shipping ? <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}><span style={{ fontSize: 13, color: "#A59482" }}>運費</span><span style={{ fontSize: 13, color: "#A59482", fontFamily: "monospace" }}>{ntd(Math.abs(r.shipping))}</span></div> : null}
               <div style={{ height: 1, background: "#DBC8B6", margin: "10px 0" }} />
               <div style={{ fontSize: 12, color: "#A59482", fontFamily: "monospace", lineHeight: 1.8 }}>
-                營業額 {ntd(r.totalRevenue||r.totalStock)}<br />成本 {ntd(r.totalStock)}<br />
+                總金額 {ntd(r.totalRevenue||r.totalStock)}<br />
                 <span style={{ color: "#9a7050", fontWeight: 700 }}>淨利 {ntd(r.netProfit)}</span>
               </div>
             </>
@@ -1192,7 +1215,9 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
         const mBranchRevenue = mRecords.filter(r => r.type === "branch").reduce((s, r) => s + (r.totalRevenue||r.totalStock||0), 0);
         const mBranch = mBranchRevenue;
         const mBranchNet = mRecords.filter(r => r.type === "branch").reduce((s, r) => s + r.netProfit, 0);
-        const mShip = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + (r.shipping || 0), 0);
+        const mShipSale = mRecords.filter(r => r.type === "sale").reduce((s, r) => s + (r.shipping || 0), 0);
+        const mShipBranch = Math.abs(mRecords.filter(r => r.type === "branch").reduce((s, r) => s + (r.shipping || 0), 0));
+        const mShip = mShipSale + mShipBranch;
         if (mRecords.length === 0) return null;
         return (
           <Card style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: 16, marginBottom: 14 }}>
@@ -1222,46 +1247,34 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
               </div>
             </>}
             {filter === "sale" && <>
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
-                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mRev)}</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(mRev)}</div>
                 </div>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月銷售淨利</div>
-                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mProfit)}</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
-                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(mProfit)}</div>
                 </div>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出</div>
-                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mShip)}</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(mShip)}</div>
                 </div>
               </div>
             </>}
             {filter === "branch" && <>
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月營業額</div>
-                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranchRevenue)}</div>
+                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(mBranchRevenue)}</div>
                 </div>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>月分店淨利</div>
-                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mBranchNet)}</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
-                  <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>進貨成本</div>
-                  <div style={{ color: "#fff", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mStock)}</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(mBranchNet)}</div>
                 </div>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ color: "#DBC8B6", fontSize: 10, marginBottom: 3 }}>運費支出</div>
-                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 15, fontWeight: 700 }}>{ntd(mShip)}</div>
+                  <div style={{ color: "#f5e6de", fontFamily: "monospace", fontSize: 14, fontWeight: 700 }}>{ntd(Math.abs(mShipBranch))}</div>
                 </div>
               </div>
             </>}
@@ -1397,8 +1410,8 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
 
   const yearRecords = pr.filter(r => new Date(r.date.replace(/\//g,"-")).getFullYear() === selYear);
   const monthRecords = yearRecords.filter(r => new Date(r.date.replace(/\//g,"-")).getMonth()+1 === selMonth);
-  const yearStock = yearRecords.reduce((s,r)=>s+(r.totalStock||r.totalRevenue||0),0);
-  const monthStock = monthRecords.reduce((s,r)=>s+(r.totalStock||r.totalRevenue||0),0);
+  const yearStock = yearRecords.reduce((s,r)=>s+(r.totalRevenue||r.totalStock||0),0);
+  const monthStock = monthRecords.reduce((s,r)=>s+(r.totalRevenue||r.totalStock||0),0);
   const yearNet = yearRecords.reduce((s,r)=>s+r.netProfit,0);
   const monthNet = monthRecords.reduce((s,r)=>s+r.netProfit,0);
 
@@ -1563,11 +1576,17 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
                 <div style={{ display: "flex", gap: 10 }}>
                   <div style={{ flex: 1, background: "#f7f2ee", borderRadius: 8, padding: "6px 10px" }}>
                     <div style={{ fontSize: 10, color: "#C4B1A0", fontWeight: 700 }}>總金額</div>
-                    <div style={{ fontSize: 13, fontFamily: "monospace", color: "#A59482", fontWeight: 700 }}>{ntd(r.totalRevenue || r.totalStock || 0)}</div>
+                    <div style={{ fontSize: 13, fontFamily: "monospace", color: "#A59482", fontWeight: 700 }}>{ntd(r.totalRevenue||r.totalStock||0)}</div>
                   </div>
+                  {r.shipping ? (
+                    <div style={{ flex: 1, background: "#f7f2ee", borderRadius: 8, padding: "6px 10px" }}>
+                      <div style={{ fontSize: 10, color: "#C4B1A0", fontWeight: 700 }}>運費</div>
+                      <div style={{ fontSize: 13, fontFamily: "monospace", color: "#A59482", fontWeight: 700 }}>{ntd(Math.abs(r.shipping))}</div>
+                    </div>
+                  ) : null}
                   <div style={{ flex: 1, background: "#f7f2ee", borderRadius: 8, padding: "6px 10px" }}>
                     <div style={{ fontSize: 10, color: "#C4B1A0", fontWeight: 700 }}>淨利</div>
-                    <div style={{ fontSize: 13, fontFamily: "monospace", color: r.netProfit >= 0 ? "#7a5c3a" : "#c0392b", fontWeight: 700 }}>{ntd(r.netProfit)}</div>
+                    <div style={{ fontSize: 13, fontFamily: "monospace", color: r.netProfit >= 0 ? "#7a5c3a" : "#c0392b", fontWeight: 700 }}>{ntd(r.netProfit||0)}</div>
                   </div>
                 </div>
               </div>
@@ -1997,10 +2016,11 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
 
             {/* 預覽 */}
             <Card style={{ background: "#f7f2ee" }}>
-              <Label>淨利總計</Label>
+              <Label style={{ color: "#7a5c3a" }}>淨利總計</Label>
+              <div style={{ fontSize: 13, color: "#A59482" }}>總金額：{ntd(items.reduce((s,it) => s + Number(it.price)*Number(it.qty), 0))}</div>
               <div style={{ fontSize: 13, color: "#A59482" }}>成本：{ntd(items.reduce((s,it) => s + Number(it.cost)*Number(it.qty), 0))}</div>
-              <div style={{ fontSize: 13, color: "#A59482" }}>夥伴總淨利：{ntd(items.reduce((s,it) => s + (Number(it.price)-Number(it.cost))*Number(it.qty), 0))}</div>
-              <div style={{ fontSize: 18, color: "#7a5c3a", fontWeight: 700, marginTop: 4 }}>總金額：{ntd(items.reduce((s,it) => s + Number(it.price)*Number(it.qty), 0))}</div>
+              {Number(shipping) > 0 && <div style={{ fontSize: 13, color: "#A59482" }}>運費：{ntd(Number(shipping))}</div>}
+              <div style={{ fontSize: 16, color: "#7a5c3a", fontWeight: 700, marginTop: 4 }}>淨利：{ntd(items.reduce((s,it) => s + (Number(it.price)-Number(it.cost))*Number(it.qty), 0) - Number(shipping||0))}</div>
             </Card>
 
             <button onClick={handleSave} style={{ width: "100%", padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#7a6352,#9A6852)", color: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700, marginBottom: 16 }}>
@@ -2648,7 +2668,7 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
           onSave={(note) => {
             const n = new Date(); const today = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
             const consult = note.trim() ? { date: today, note } : null;
-            const updated = { ...custCareModal, careDate: "", receivedDate: "", consults: consult ? [consult, ...(custCareModal.consults||[])] : (custCareModal.consults||[]) };
+            const updated = { ...custCareModal, careDate: "", receivedDate: today, buyDate: today, consults: consult ? [consult, ...(custCareModal.consults||[])] : (custCareModal.consults||[]) };
             onUpdate(updated);
             setCustCareModal(null);
           }}
