@@ -314,7 +314,7 @@ function PetTab({ coins }) {
     try {
       const s = localStorage.getItem(LS_PET);
       return s ? JSON.parse(s) : null;
-    } catch { return null; }
+    } catch(e) { return null; }
   });
   const [msg, setMsg] = useState("");
   const [confirmReset, setConfirmReset] = useState(false);
@@ -323,7 +323,7 @@ function PetTab({ coins }) {
 
   const savePet = (p) => {
     setPet(p);
-    try { localStorage.setItem(LS_PET, JSON.stringify(p)); } catch {}
+    try { localStorage.setItem(LS_PET, JSON.stringify(p)); } catch(e) {}
   };
 
   const showMsg = (m) => { setMsg(m); setTimeout(() => setMsg(""), 2000); };
@@ -974,7 +974,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
 
   // 讀取分店紀錄
   const [branchRecords, setBranchRecords] = useState(() => {
-    try { const s = localStorage.getItem("royal_more_branch"); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem("royal_more_branch"); return s ? JSON.parse(s) : []; } catch(e) { return []; }
   });
 
   // 合併所有紀錄，分店加上 type: "branch"
@@ -1036,7 +1036,7 @@ function HistoryTab({ records, onDelete, exportData, importData }) {
               <button onClick={() => {
                 const isBranchRec = branchRecords.some(r => r.id === deleting);
                 if (isBranchRec) {
-                  const upd = branchRecords.filter(r => r.id !== deleting); try { localStorage.setItem("royal_more_branch", JSON.stringify(upd)); } catch {} setBranchRecords(upd);
+                  const upd = branchRecords.filter(r => r.id !== deleting); try { localStorage.setItem("royal_more_branch", JSON.stringify(upd)); } catch(e) {} setBranchRecords(upd);
                 } else { onDelete(deleting); }
                 setDeleting(null); setExpanded(null);
               }} style={{ flex: 1, padding: 12, borderRadius: 12, border: "none", background: "#c0392b", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>刪除</button>
@@ -1613,7 +1613,7 @@ function PartnerDetail({ viewPartner, partners, records, setViewPartner, setEdit
                 ))}
               </Card>
             );
-          } catch { return null; }
+          } catch(e) { return null; }
         })()}
       </div>
     </div>
@@ -1759,12 +1759,12 @@ function CareModal({ partnerName, onSave, onCancel }) {
 
 function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecords, setAllRecords }) {
   const [records, setRecords] = useState(() => {
-    try { const s = localStorage.getItem(LS_BRANCH); return s ? JSON.parse(s) : []; } catch { return []; }
+    try { const s = localStorage.getItem(LS_BRANCH); return s ? JSON.parse(s) : []; } catch(e) { return []; }
   });
   const [partnerSearch, setPartnerSearch] = useState("");
   const [careModal, setCareModal] = useState(null);
   const [dismissedQuota, setDismissedQuota] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("royal_more_branch_quota_dismiss")||"{}"); } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem("royal_more_branch_quota_dismiss")||"{}"); } catch(e) { return {}; }
   }); // { partnerId, partnerName }
   const [showPartnerForm, setShowPartnerForm] = useState(false);
   const [editPartner, setEditPartner] = useState(null);
@@ -1781,7 +1781,7 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
   const [note, setNote] = useState("");
   const [deleting, setDeleting] = useState(null);
 
-  const save = (r) => { try { localStorage.setItem(LS_BRANCH, JSON.stringify(r)); } catch {} };
+  const save = (r) => { try { localStorage.setItem(LS_BRANCH, JSON.stringify(r)); } catch(e) {} };
 
   // 選商品時自動帶入該階級售價和成本
   const handleProductChange = (i, product) => {
@@ -2130,11 +2130,11 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
                     if (diff <= 0) return null;
                     const nowYM = (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`; })();
                     if (dismissedQuota[p.id] === nowYM) return (
-                      <span onClick={e => { e.stopPropagation(); const upd = {...dismissedQuota}; delete upd[p.id]; setDismissedQuota(upd); try { localStorage.setItem("royal_more_branch_quota_dismiss", JSON.stringify(upd)); } catch {} }}
+                      <span onClick={e => { e.stopPropagation(); const upd = {...dismissedQuota}; delete upd[p.id]; setDismissedQuota(upd); try { localStorage.setItem("royal_more_branch_quota_dismiss", JSON.stringify(upd)); } catch(e) {} }}
                         style={{ fontSize: 10, color: "#C4B1A0", cursor: "pointer", textDecoration: "underline" }}>恢復提醒</span>
                     );
                     return (
-                      <div onClick={e => { e.stopPropagation(); const upd = {...dismissedQuota, [p.id]: nowYM}; setDismissedQuota(upd); try { localStorage.setItem("royal_more_branch_quota_dismiss", JSON.stringify(upd)); } catch {} }}
+                      <div onClick={e => { e.stopPropagation(); const upd = {...dismissedQuota, [p.id]: nowYM}; setDismissedQuota(upd); try { localStorage.setItem("royal_more_branch_quota_dismiss", JSON.stringify(upd)); } catch(e) {} }}
                         style={{ fontSize: 11, color: "#c0392b", background: "#fdf0ee", borderRadius: 8, padding: "4px 10px", marginTop: 4, marginBottom: 2, fontWeight: 600, display: "inline-block", cursor: "pointer" }}>
                         🛎️ 每月進貨還差 ${diff.toLocaleString()} 達標
                       </div>
@@ -2239,6 +2239,47 @@ function BranchTab({ partners, setPartners, savePartners, addCustomer, allRecord
 }
 
 
+function ReminderModal({ customer, onSave, onCancel }) {
+  const rem = customer.reminders || {};
+  const fmt = (d) => d ? d.replace(/-/g, '/') : '';
+  const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 400, display: "flex", alignItems: "flex-end" }}>
+      <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%", boxSizing: "border-box" }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: "#A59482", marginBottom: 4 }}>🕰️ 關心提醒設定</div>
+        <div style={{ fontSize: 13, color: "#C4B1A0", marginBottom: 16 }}>{customer.name}</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[["day3", "3天後關心", 3], ["day7", "7天後關心", 7]].map(([key, label, days]) => {
+            const isSet = !!rem[key];
+            return (
+              <div key={key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 14, color: "#7a5c3a" }}>{label}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {isSet && <span style={{ fontSize: 12, color: "#A59482" }}>{fmt(rem[key])}</span>}
+                  <button onClick={() => onSave({ ...rem, [key]: isSet ? null : addDays(days) })}
+                    style={{ padding: "6px 16px", borderRadius: 20, border: "none", cursor: "pointer", background: isSet ? "#c0392b" : "#C6A992", color: "#fff", fontSize: 13, fontWeight: 600 }}>
+                    {isSet ? "取消" : "設定"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 14, color: "#7a5c3a" }}>指定日期</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input type="date" defaultValue={rem.custom || ""} onChange={e => onSave({ ...rem, custom: e.target.value || null })}
+                style={{ border: "1.5px solid #DBC8B6", borderRadius: 8, padding: "4px 8px", fontSize: 13, color: "#7a5c3a" }} />
+              {rem.custom && <button onClick={() => onSave({ ...rem, custom: null })}
+                style={{ background: "none", border: "none", color: "#C4B1A0", cursor: "pointer", fontSize: 16 }}>✕</button>}
+            </div>
+          </div>
+        </div>
+        <button onClick={onCancel} style={{ marginTop: 20, width: "100%", padding: 12, borderRadius: 12, border: "1.5px solid #DBC8B6", background: "#fff", color: "#A59482", cursor: "pointer", fontSize: 14 }}>關閉</button>
+      </div>
+    </div>
+  );
+}
+
 function CustomerCareModal({ customer, onSave, onCancel }) {
   const [note, setNote] = useState("");
   return (
@@ -2291,7 +2332,7 @@ function CustomerForm({ customer, onSave, onCancel }) {
     if (idx !== i) return p;
     return { ...p, qtys: { ...(p.qtys || {}), [prod]: Number(qty) || 1 } };
   }));
-  const handleSave = () => { if (!name.trim()) return alert("請填入顧客名稱"); onSave({ id: customer?.id || nowId(), name: name.trim(), platform, contact, contactMethod, contactNote, buyCount, buyDate, careDate, careNote, tags, purchases, usage, receivedDate, consults, formerPartner: customer?.formerPartner, formerPartnerRecords: customer?.formerPartnerRecords }); };
+  const handleSave = () => { if (!name.trim()) return alert("請填入顧客名稱"); onSave({ id: customer?.id || nowId(), name: name.trim(), platform, contact, contactMethod, contactNote, buyCount, buyDate, careDate, careNote, tags, purchases, usage, receivedDate, consults, formerPartner: customer?.formerPartner, formerPartnerRecords: customer?.formerPartnerRecords, reminders: customer?.reminders }); };
   return (
     <div style={{ position: "fixed", inset: 0, background: "#ede0d4", zIndex: 200, overflowY: "auto" }}>
       <div style={{ background: "linear-gradient(135deg,#A59482,#C6A992)", padding: "44px 20px 16px", color: "#fff", display: "flex", alignItems: "center", gap: 12 }}>
@@ -2481,7 +2522,7 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
         {custSales.length > 0 && (
           <Card>
             <Label>購買記錄（{custSales.length} 筆）</Label>
-            {custSales.map(r => (
+            {[...custSales].sort((a,b) => new Date(b.date.replace(/\//g,"-")) - new Date(a.date.replace(/\//g,"-"))).map(r => (
               <div key={r.id} style={{ padding: "10px 0", borderBottom: "1px solid #ede0d4" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <div style={{ fontSize: 12, color: "#C4B1A0" }}>{r.date}</div>
@@ -2528,7 +2569,7 @@ function CustomerDetail({ customer, salesRecords, onEdit, onDelete, onClose, onC
                 ))}
               </Card>
             );
-          } catch { return null; }
+          } catch(e) { return null; }
         })()}
       </div>
     </div>
@@ -2544,6 +2585,7 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
   const [saleCustomer, setSaleCustomer] = useState(null);
   const [filterTag, setFilterTag] = useState("");
   const [custCareModal, setCustCareModal] = useState(null);
+  const [reminderModal, setReminderModal] = useState(null); // { customer }
 
   // 計算購買日期距今天數
   const getDaysSince = (dateStr) => {
@@ -2577,14 +2619,12 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
       if (daysUntil !== null && daysUntil === 1) return { label: "明天關心", color: "#e67e22", bg: "#fff3e0", days: 1, isCareDate: true };
       return null;
     }
-    // 收貨/購買後第3/7天提醒
-    const refDate = c.receivedDate || c.buyDate;
-    const days = getDaysSince(refDate);
-    if (days === null) return null;
-    if (days === 3) return { label: "第3天提醒", color: "#e67e22", bg: "#fff3e0", days };
-    if (days === 7) return { label: "第7天提醒", color: "#c0392b", bg: "#fff0ee", days };
-    if (days > 3 && days < 7) return { label: `第${days}天`, color: "#A59482", bg: "#faf6f2", days };
-    if (days > 7) return { label: `第${days}天未關心`, color: "#c0392b", bg: "#fff0ee", days };
+    // reminders 設定提醒
+    const rem = c.reminders || {};
+    const todayMs = new Date().setHours(0,0,0,0);
+    if (rem.day3) { const t = new Date(rem.day3).setHours(0,0,0,0); if (todayMs >= t) return { label: "3天提醒到", color: "#c0392b", bg: "#fff0ee", days: 0, isCareDate: true }; }
+    if (rem.day7) { const t = new Date(rem.day7).setHours(0,0,0,0); if (todayMs >= t) return { label: "7天提醒到", color: "#c0392b", bg: "#fff0ee", days: 0, isCareDate: true }; }
+    if (rem.custom) { const t = new Date(rem.custom).setHours(0,0,0,0); if (todayMs >= t) return { label: "指定日提醒", color: "#c0392b", bg: "#fff0ee", days: 0, isCareDate: true }; }
     return null;
   };
 
@@ -2600,8 +2640,13 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
     });
   };
 
-  const filtered = sortCustomers(
-    customers.filter(c => c.name.includes(search) && (filterTag === "" || c.tags.includes(filterTag)))
+  const sortedByDate = [...customers].sort((a,b) => {
+      const da = a.buyDate ? new Date(a.buyDate.replace(/\//g,"-")) : new Date(0);
+      const db = b.buyDate ? new Date(b.buyDate.replace(/\//g,"-")) : new Date(0);
+      return db - da;
+    });
+    const filtered = sortCustomers(
+    sortedByDate.filter(c => c.name.includes(search) && (filterTag === "" || c.tags.includes(filterTag)))
   );
 
   // 需要提醒的數量（第3天或第7天）
@@ -2611,8 +2656,8 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
       return daysUntil !== null && daysUntil <= 0;
     }
     const refDate = c.receivedDate || c.buyDate;
-    const days = getDaysSince(refDate);
-    return days === 3 || days === 7;
+    const days2 = getDaysSince(refDate);
+    return days2 !== null && (days2 === 3 || days2 === 7 || days2 > 7);
   }).length;
 
   // 節日提醒
@@ -2663,12 +2708,26 @@ function CustomersTab({ customers, onAdd, onUpdate, onDelete, salesRecords, onSa
     <div>
       {showSaleForm && <SaleQuickModal customer={saleCustomer} customers={customers} onSave={(rec) => { onSaleAdd(rec); setShowSaleForm(false); }} onCancel={() => setShowSaleForm(false)} />}
       {showForm && <CustomerForm customer={editCustomer} onSave={handleSave} onCancel={() => { setShowForm(false); setEditCustomer(null); }} />}
+      {reminderModal && (
+        <ReminderModal customer={reminderModal} onCancel={() => setReminderModal(null)}
+          onSave={(newRem) => {
+            const upd = { ...reminderModal, reminders: newRem };
+            try { const all = JSON.parse(localStorage.getItem("royal_more_customers")||"[]"); localStorage.setItem("royal_more_customers", JSON.stringify(all.map(c => c.id===reminderModal.id ? upd : c))); } catch(e) {}
+            onUpdate(upd);
+            setReminderModal(upd);
+          }}
+        />
+      )}
       {custCareModal && (
         <CustomerCareModal customer={custCareModal} onCancel={() => setCustCareModal(null)}
           onSave={(note) => {
             const n = new Date(); const today = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
             const consult = note.trim() ? { date: today, note } : null;
-            const updated = { ...custCareModal, careDate: "", receivedDate: today, buyDate: today, consults: consult ? [consult, ...(custCareModal.consults||[])] : (custCareModal.consults||[]) };
+            const rem2 = custCareModal.reminders || {};
+            const ms = new Date().setHours(0,0,0,0);
+            const clr = (k) => rem2[k] && new Date(rem2[k]).setHours(0,0,0,0) <= ms ? null : rem2[k];
+            const newRem2 = { ...rem2, day3: clr("day3"), day7: clr("day7"), custom: clr("custom") };
+            const updated = { ...custCareModal, careDate: "", receivedDate: today, reminders: newRem2, consults: consult ? [consult, ...(custCareModal.consults||[])] : (custCareModal.consults||[]) };
             onUpdate(updated);
             setCustCareModal(null);
           }}
@@ -2806,7 +2865,10 @@ alert('✅ 已將「' + viewCustomer.name + '」轉為夥伴！');
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: "#A59482" }}>{c.name}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: "#A59482" }}>{c.name}</div>
+                      <span onClick={e => { e.stopPropagation(); setReminderModal(c); }} style={{ fontSize: 12, cursor: "pointer", color: (c.reminders && (c.reminders.day3 || c.reminders.day7 || c.reminders.custom)) ? "#c0392b" : "#C4B1A0" }}>🕰️</span>
+                    </div>
                     {c.contactMethod && (
                       <span style={{ fontSize: 11, color: "#A59482", flexShrink: 0 }}>
                         聯絡方式｜{c.contactMethod === "其他" ? (c.contactNote || "其他") : c.contactMethod}{c.contact ? `: ${c.contact}` : ""}
@@ -2816,10 +2878,17 @@ alert('✅ 已將「' + viewCustomer.name + '」轉為夥伴！');
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#e8ddd4", color: "#8a6a50", fontWeight: 600 }}>{c.platform}</span>
                     <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: "#d8dde8", color: "#5a6280", fontWeight: 600 }}>{c.buyCount}</span>
-                    {c.tags.slice(0, 2).map(t => { const tc = getTagColor(t); return <span key={t} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: tc.bg, color: tc.color, fontWeight: 600 }}>{t}</span>; })}
+                    {(() => {
+                     if (!c.receivedDate) return null;
+                     const recv = new Date(c.receivedDate.replace(/\//g,"-")); recv.setHours(0,0,0,0);
+                     const diff = Math.floor((new Date().setHours(0,0,0,0) - recv) / 86400000);
+                     if (diff > 7) return null;
+                     return <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: "#ede0d4", color: "#7a5c3a", fontWeight: 600, marginRight: 4 }}>已收貨</span>;
+                   })()}
+                   {c.tags.slice(0, 2).map(t => { const tc = getTagColor(t); return <span key={t} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: tc.bg, color: tc.color, fontWeight: 600 }}>{t}</span>; })}
                     {followUp && <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: followUp.bg, color: followUp.color, fontWeight: 600 }}>{followUp.label}</span>}
                   </div>
-                  {c.buyDate && <div style={{ fontSize: 12, color: "#C4B1A0", marginTop: 4 }}>購買：{c.buyDate}{c.careDate ? ` · 下次關心：${c.careDate}` : ""}</div>}
+                  {c.buyDate && <div style={{ fontSize: 12, color: "#C4B1A0", marginTop: 4 }}>購買：{c.buyDate}{c.careDate ? ` · 下次關心：${c.careDate}` : ""}{(() => { const rem = c.reminders || {}; const next = rem.day3 || rem.day7 || rem.custom; return (!next || c.careDate) ? "" : ` · 下次關心：${next.replace(/-0/g, "-").replace(/^0/, "").replace(/-/g, "/")}`; })()}</div>}
                 </div>
                 <div style={{ textAlign: "right", marginLeft: 10 }}>
                   {custSales.length > 0 && <div style={{ fontSize: 12, color: "#7a5c3a", fontWeight: 600 }}>{custSales.length} 筆紀錄</div>}
@@ -2836,29 +2905,29 @@ alert('✅ 已將「' + viewCustomer.name + '」轉為夥伴！');
 
 function App() {
   const [tab, setTab] = useState(0);
-  const [records, setRecords] = useState(() => { try { const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : []; } catch { return []; } });
-  const [partners, setPartners] = useState(() => { try { const s = localStorage.getItem("royal_more_branch_partners"); return s ? JSON.parse(s) : []; } catch { return []; } });
-  const savePartners = (data) => { try { localStorage.setItem("royal_more_branch_partners", JSON.stringify(data)); } catch {} };
+  const [records, setRecords] = useState(() => { try { const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : []; } catch(e) { return []; } });
+  const [partners, setPartners] = useState(() => { try { const s = localStorage.getItem("royal_more_branch_partners"); return s ? JSON.parse(s) : []; } catch(e) { return []; } });
+  const savePartners = (data) => { try { localStorage.setItem("royal_more_branch_partners", JSON.stringify(data)); } catch(e) {} };
   const addPartner = (p) => { const updated = [p, ...partners]; setPartners(updated); savePartners(updated); };
-  const [customers, setCustomers] = useState(() => { try { const s = localStorage.getItem(LS_CUSTOMERS); return s ? JSON.parse(s) : []; } catch { return []; } });
+  const [customers, setCustomers] = useState(() => { try { const s = localStorage.getItem(LS_CUSTOMERS); return s ? JSON.parse(s) : []; } catch(e) { return []; } });
   const [importMsg, setImportMsg] = useState("");
 
-  useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(records)); } catch {} }, [records]);
-  useEffect(() => { try { localStorage.setItem(LS_CUSTOMERS, JSON.stringify(customers)); } catch {} }, [customers]);
+  useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(records)); } catch(e) {} }, [records]);
+  useEffect(() => { try { localStorage.setItem(LS_CUSTOMERS, JSON.stringify(customers)); } catch(e) {} }, [customers]);
 
   const addRecord = useCallback((r) => setRecords(prev => [r, ...prev]), []);
   const deleteRecord = useCallback((id) => setRecords(prev => prev.filter(r => r.id !== id)), []);
   const addCustomer = (c) => {
     setCustomers(prev => {
       const updated = [c, ...prev];
-      try { localStorage.setItem("royal_more_customers", JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem("royal_more_customers", JSON.stringify(updated)); } catch(e) {}
       return updated;
     });
   };
   const updateCustomer = (c) => {
     setCustomers(prev => {
       const updated = prev.map(x => x.id === c.id ? c : x);
-      try { localStorage.setItem("royal_more_customers", JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem("royal_more_customers", JSON.stringify(updated)); } catch(e) {}
       return updated;
     });
   };
@@ -2871,7 +2940,7 @@ function App() {
   );
 
   const exportData = () => {
-    const branchRecs = (() => { try { return JSON.parse(localStorage.getItem("royal_more_branch")||"[]"); } catch { return []; } })();
+    const branchRecs = (() => { try { return JSON.parse(localStorage.getItem("royal_more_branch")||"[]"); } catch(e) { return []; } })();
     const blob = new Blob([JSON.stringify({ records, customers, partners, branchRecords: branchRecs }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -2897,15 +2966,15 @@ function App() {
           if (data.partners) {
             const updated = (() => { const ids = new Set(partners.map(p => p.id)); return [...data.partners.filter(p => !ids.has(p.id)), ...partners]; })();
             setPartners(updated);
-            try { localStorage.setItem("royal_more_branch_partners", JSON.stringify(updated)); } catch {}
+            try { localStorage.setItem("royal_more_branch_partners", JSON.stringify(updated)); } catch(e) {}
           }
           if (data.branchRecords) {
-            try { const existing = JSON.parse(localStorage.getItem("royal_more_branch")||"[]"); const ids = new Set(existing.map(r => r.id)); const merged = [...data.branchRecords.filter(r => !ids.has(r.id)), ...existing]; localStorage.setItem("royal_more_branch", JSON.stringify(merged)); } catch {}
+            try { const existing = JSON.parse(localStorage.getItem("royal_more_branch")||"[]"); const ids = new Set(existing.map(r => r.id)); const merged = [...data.branchRecords.filter(r => !ids.has(r.id)), ...existing]; localStorage.setItem("royal_more_branch", JSON.stringify(merged)); } catch(e) {}
           }
           const counts = [data.records ? data.records.length + "筆紀錄" : "", data.customers ? data.customers.length + "位顧客" : "", data.partners ? data.partners.length + "位夥伴" : "", data.branchRecords ? data.branchRecords.length + "筆進貨" : ""].filter(Boolean).join("、");
           setImportMsg("✅ 成功匯入 " + counts + "！");
         }
-      } catch { setImportMsg("❌ 檔案格式錯誤"); }
+      } catch(e) { setImportMsg("❌ 檔案格式錯誤"); }
       setTimeout(() => setImportMsg(""), 3000);
     };
     reader.readAsText(file);
